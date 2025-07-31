@@ -28,7 +28,6 @@ class ProfileImagePickedEvent extends ProfileEvent {
 
 class UpdateProfileEvent extends ProfileEvent {
   final AuthEntity authEntity;
-
   const UpdateProfileEvent({required this.authEntity});
 
   @override
@@ -36,3 +35,10 @@ class UpdateProfileEvent extends ProfileEvent {
 }
 
 class LogoutEvent extends ProfileEvent {}
+
+class UpdateProfilePictureEvent extends ProfileEvent {
+  final File imageFile;
+  const UpdateProfilePictureEvent({required this.imageFile});
+  @override
+  List<Object?> get props => [imageFile];
+}

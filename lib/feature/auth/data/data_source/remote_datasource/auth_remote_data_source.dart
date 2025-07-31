@@ -5,6 +5,7 @@ import 'package:hamro_grocery_mobile/feature/auth/data/data_source/auth_data_sou
 import 'package:hamro_grocery_mobile/feature/auth/data/dto/get_all_user_dto.dart';
 import 'package:hamro_grocery_mobile/feature/auth/data/model/user_api_model.dart';
 import 'package:hamro_grocery_mobile/feature/auth/domain/entity/auth_entity.dart';
+import 'dart:io';
 
 class AuthRemoteDataSource implements IAuthDataSource {
   final ApiService _apiService;
@@ -75,15 +76,12 @@ class AuthRemoteDataSource implements IAuthDataSource {
         final userApiModel = UserApiModel.fromJson(userJson);
         return userApiModel.toEntity();
       } else {
-        // Throw an exception with the server's message if available.
         final errorMessage = response.data['message'] ?? response.statusMessage;
         throw Exception("Failed to get user profile: $errorMessage");
       }
     } on DioException catch (e) {
-      // Propagate a more specific error message from Dio.
       throw Exception("Failed to get user profile: ${e.message}");
     } catch (e) {
-      // Catch any other unexpected errors, like the parsing error you were seeing.
       throw Exception("An unexpected error occurred while getting profile: $e");
     }
   }
@@ -101,11 +99,26 @@ class AuthRemoteDataSource implements IAuthDataSource {
   @override
   Future<AuthEntity> updateUserProfile(AuthEntity entity, String? token) async {
     try {
-      final userApiModel = UserApiModel.fromEntity(entity);
+      final Map<String, dynamic> dataMap = {
+        'fullName': entity.fullName,
+        'email': entity.email,
+        'location': entity.location,
+      };
+      if (entity.profilePicture != null && entity.profilePicture!.isNotEmpty) {
+        final file = File(entity.profilePicture!);
+        if (await file.exists()) {
+          dataMap['profilePicture'] = await MultipartFile.fromFile(
+            file.path,
+            filename: file.path.split('/').last,
+          );
+        }
+      }
+
+      final formData = FormData.fromMap(dataMap);
       final response = await _apiService.dio.put(
         ApiEndpoints.updateUserProfile,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
-        data: userApiModel.toJson(),
+        data: formData,
       );
       print('update user profile response : $response');
       if (response.statusCode == 200) {
@@ -118,9 +131,46 @@ class AuthRemoteDataSource implements IAuthDataSource {
         );
       }
     } on DioException catch (e) {
+      print('Dio Error: ${e.response?.data ?? e.message}');
       throw Exception("Failed to update user profile: ${e.message}");
     } catch (e) {
-      throw Exception("Failed to update user profile: $e");
+      print('Unexpected Error: $e');
+      throw Exception("An unexpected error occurred: $e");
+    }
+  }
+
+  @override
+  Future<AuthEntity> updateProfilePicture(
+    String imagePath,
+    String? token,
+  ) async {
+    try {
+      // The key 'profilePicture' MUST match multerUpload.single('profilePicture') in your route.
+      String fileName = imagePath.split('/').last;
+      FormData formData = FormData.fromMap({
+        'profilePicture': await MultipartFile.fromFile(
+          imagePath,
+          filename: fileName,
+        ),
+      });
+
+      final response = await _apiService.dio.put(
+        ApiEndpoints
+            .updateUserProfilePicture, // Uses the '/profile/picture' endpoint
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        data: formData,
+      );
+
+      if (response.statusCode == 200) {
+        final updatedUserJson = response.data['data'] ?? response.data;
+        return UserApiModel.fromJson(updatedUserJson).toEntity();
+      } else {
+        throw Exception("Failed to update picture: ${response.statusMessage}");
+      }
+    } on DioException catch (e) {
+      throw Exception(
+        "Failed to update picture: ${e.response?.data['message'] ?? e.message}",
+      );
     }
   }
 }

@@ -10,6 +10,7 @@ import 'package:hamro_grocery_mobile/feature/auth/domain/usecase/check_auth_usec
 import 'package:hamro_grocery_mobile/feature/auth/domain/usecase/get_user_usecase.dart';
 import 'package:hamro_grocery_mobile/feature/auth/domain/usecase/login_usecase.dart';
 import 'package:hamro_grocery_mobile/feature/auth/domain/usecase/register_usecase.dart';
+import 'package:hamro_grocery_mobile/feature/auth/domain/usecase/update_profile_picture.dart';
 import 'package:hamro_grocery_mobile/feature/auth/domain/usecase/update_user_usecase.dart';
 import 'package:hamro_grocery_mobile/feature/auth/domain/usecase/user_logout_usecase.dart';
 import 'package:hamro_grocery_mobile/feature/auth/presentation/view_model/login_view_model/login_view_model.dart';
@@ -22,21 +23,28 @@ import 'package:hamro_grocery_mobile/feature/category/domain/usecase/get_all_cat
 import 'package:hamro_grocery_mobile/feature/category/presentation/view_model/category_view_model.dart';
 import 'package:hamro_grocery_mobile/feature/order/data/data_source/cart_remote_data_source.dart';
 import 'package:hamro_grocery_mobile/feature/order/data/data_source/order_item_remote_data_source.dart';
+import 'package:hamro_grocery_mobile/feature/order/data/data_source/payment_datasource.dart';
+import 'package:hamro_grocery_mobile/feature/order/data/data_source/payment_remote_data_source.dart';
 import 'package:hamro_grocery_mobile/feature/order/data/repository/cart_remote_repository.dart';
 import 'package:hamro_grocery_mobile/feature/order/data/repository/order_remote_repository.dart';
+import 'package:hamro_grocery_mobile/feature/order/data/repository/payment_remote_repository.dart';
 import 'package:hamro_grocery_mobile/feature/order/domain/repository/cart_repository.dart';
 import 'package:hamro_grocery_mobile/feature/order/domain/repository/order_repository.dart';
+import 'package:hamro_grocery_mobile/feature/order/domain/repository/payment_repository.dart';
 import 'package:hamro_grocery_mobile/feature/order/domain/usecase/add_cart_item_usecase.dart';
 import 'package:hamro_grocery_mobile/feature/order/domain/usecase/clear_cart_usecase.dart';
 import 'package:hamro_grocery_mobile/feature/order/domain/usecase/create_order_usecase.dart';
 import 'package:hamro_grocery_mobile/feature/order/domain/usecase/get_cart_item_usecase.dart';
 import 'package:hamro_grocery_mobile/feature/order/domain/usecase/get_my_order_usecase.dart';
 import 'package:hamro_grocery_mobile/feature/order/domain/usecase/get_my_payment_history_usecase.dart';
+import 'package:hamro_grocery_mobile/feature/order/domain/usecase/payment_integration_usecase.dart';
 import 'package:hamro_grocery_mobile/feature/order/domain/usecase/remote_cart_item_usecase.dart';
 import 'package:hamro_grocery_mobile/feature/order/domain/usecase/update_cart_item_usecase.dart';
 import 'package:hamro_grocery_mobile/feature/order/domain/usecase/update_order_usecase.dart';
+import 'package:hamro_grocery_mobile/feature/order/domain/usecase/verify_payment_usecase.dart';
 import 'package:hamro_grocery_mobile/feature/order/presentation/view_model/cart_view_model.dart';
 import 'package:hamro_grocery_mobile/feature/order/presentation/view_model/order_view_model.dart';
+import 'package:hamro_grocery_mobile/feature/order/presentation/view_model/payment_view_model.dart';
 import 'package:hamro_grocery_mobile/feature/product/data/data_source/remote_data_source/product_remote_data_source.dart';
 import 'package:hamro_grocery_mobile/feature/product/data/repository/remote_repository/product_remote_repository.dart';
 import 'package:hamro_grocery_mobile/feature/product/domain/repository/product_repository.dart';
@@ -55,6 +63,7 @@ Future initDependencies() async {
   await _initProductModule();
   await _initCartModule();
   await _initOrderModule();
+  await _initPaymentModule();
   // await _initSplashModule();
   // await _initHomeModule();
 }
@@ -143,9 +152,14 @@ Future<void> _initAuthModule() async {
         UserLogoutUseCase(tokenSharedPrefs: serviceLocator<TokenSharedPrefs>()),
   );
 
+  serviceLocator.registerFactory(
+    () => UpdateProfilePictureUsecase(
+      authRepository: serviceLocator<AuthRemoteRepository>(),
+    ),
+  );
+
   // ===================== ViewModels ====================
 
-  // Register LoginViewModel WITHOUT HomeViewModel to avoid circular dependency
   serviceLocator.registerFactory<RegisterViewModel>(
     () => RegisterViewModel(serviceLocator<UserRegisterUseCase>()),
   );
@@ -160,6 +174,8 @@ Future<void> _initAuthModule() async {
       userGetUseCase: serviceLocator<GetUserUsecase>(),
       userUpdateUseCase: serviceLocator<UserUpdateUsecase>(),
       userLogoutUseCase: serviceLocator<UserLogoutUseCase>(),
+      updateProfilePictureUsecase:
+          serviceLocator<UpdateProfilePictureUsecase>(),
     ),
   );
 }
@@ -327,6 +343,38 @@ Future<void> _initOrderModule() async {
       getMyOrdersUseCase: serviceLocator<GetMyOrdersUseCase>(),
       updateOrderStatusUseCase: serviceLocator<UpdateOrderStatusUseCase>(),
       getPaymentHistoryUseCase: serviceLocator<GetPaymentHistoryUseCase>(),
+    ),
+  );
+}
+
+Future<void> _initPaymentModule() async {
+  serviceLocator.registerFactory<IPaymentDataSource>(
+    () => PaymentRemoteDataSourceImpl(apiService: serviceLocator<ApiService>()),
+  );
+
+  serviceLocator.registerFactory<IPaymentRepository>(
+    () =>
+        PaymentRepositoryImpl(dataSource: serviceLocator<IPaymentDataSource>()),
+  );
+
+  serviceLocator.registerFactory(
+    () => InitiateKhaltiPaymentUseCase(
+      serviceLocator<IPaymentRepository>(),
+      serviceLocator<TokenSharedPrefs>(),
+    ),
+  );
+  serviceLocator.registerFactory(
+    () => VerifyKhaltiPaymentUseCase(
+      serviceLocator<IPaymentRepository>(),
+      serviceLocator<TokenSharedPrefs>(),
+    ),
+  );
+
+  serviceLocator.registerFactory<PaymentBloc>(
+    () => PaymentBloc(
+      initiateKhaltiPaymentUseCase:
+          serviceLocator<InitiateKhaltiPaymentUseCase>(),
+      verifyKhaltiPaymentUseCase: serviceLocator<VerifyKhaltiPaymentUseCase>(),
     ),
   );
 }

@@ -4,7 +4,7 @@ class ApiEndpoints {
   static const connectionTimeout = Duration(seconds: 1000);
   static const receiveTimeout = Duration(seconds: 1000);
 
-  static const String serverAddress = "http://10.84.77.245:8081";
+  static const String serverAddress = "http://10.84.77.66:8081";
 
   static const String baseUrl = "$serverAddress/api/";
   static const String imageUrl = "$serverAddress/uploads/";
@@ -18,11 +18,15 @@ class ApiEndpoints {
 
   // User Profile Endpoints
   static const String getUserProfile = "auth/profile";
-  static const String updateUserProfile = "auth/profile/picture";
+  static const String updateUserProfile = "auth/profile";
+  static const String updateUserProfilePicture = "auth/profile/picture";
   static const String forgotPassword = "auth/forgot-password";
   static const String resetPassword = "auth/reset-password/:token";
 
   static const String orders = "orders";
   static const String myOrders = "orders/myorders";
   static const String paymentHistory = "orders/payment-history";
+
+  static const String khaltiInitiate = '/khalti/initiate';
+  static const String khaltiVerify = '/khalti/verify';
 }

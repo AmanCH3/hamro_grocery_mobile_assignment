@@ -3,6 +3,7 @@ import 'package:hamro_grocery_mobile/core/error/failure.dart';
 import 'package:hamro_grocery_mobile/feature/auth/data/data_source/remote_datasource/auth_remote_data_source.dart';
 import 'package:hamro_grocery_mobile/feature/auth/domain/entity/auth_entity.dart';
 import 'package:hamro_grocery_mobile/feature/auth/domain/repository/auth_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthRemoteRepository implements IAuthRepository {
   final AuthRemoteDataSource _authRemoteDataSource;
@@ -75,6 +76,26 @@ class AuthRemoteRepository implements IAuthRepository {
       return const Right(null);
     } catch (e) {
       return Left(ApiFailure(message: e.toString(), statusCode: 500));
+    }
+  }
+
+  @override
+  Future<Either<Failure, AuthEntity>> updateProfilePicture(
+    String imagePath,
+  ) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      if (token == null) {
+        return Left(ApiFailure(message: 'User not authenticated.'));
+      }
+      final updatedUser = await _authRemoteDataSource.updateProfilePicture(
+        imagePath,
+        token,
+      );
+      return Right(updatedUser);
+    } catch (e) {
+      return Left(ApiFailure(message: e.toString()));
     }
   }
 }

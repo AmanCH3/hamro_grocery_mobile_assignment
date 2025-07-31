@@ -10,4 +10,5 @@ abstract interface class IAuthDataSource {
   Future<void> changePassword(String oldPassword, String newPassword);
   Future<void> resetPassword(String email);
   Future<void> logoutUser();
+  Future<AuthEntity> updateProfilePicture(String imagePath, String? token);
 }

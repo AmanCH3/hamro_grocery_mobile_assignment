@@ -58,7 +58,13 @@ class UserLocalDataSource implements IAuthDataSource {
   }
 
   @override
-  Future<void> updateUserProfile(AuthEntity entity, String? token) async {
+  Future<AuthEntity> updateProfilePicture(String imagePath, String? token) {
+    // TODO: implement updateProfilePicture
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateUserProfile(AuthEntity entity, String? token) {
     // TODO: implement updateUserProfile
     throw UnimplementedError();
   }
