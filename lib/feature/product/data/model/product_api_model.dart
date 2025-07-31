@@ -24,14 +24,11 @@ class ProductApiModel extends Equatable {
     this.imageUrl,
   });
 
-  // FIX: REMOVE the manual fromJson and toJson methods.
-  // Let the generator create them in 'product_api_model.g.dart'.
   factory ProductApiModel.fromJson(Map<String, dynamic> json) =>
       _$ProductApiModelFromJson(json);
 
   Map<String, dynamic> toJson() => _$ProductApiModelToJson(this);
 
-  // The rest of your methods are fine
   ProductEntity toEntity() {
     return ProductEntity(
       productId: productId,
@@ -48,9 +45,9 @@ class ProductApiModel extends Equatable {
       productId: entity.productId,
       name: entity.name,
       category:
-      entity.category != null
-          ? CategoryApiModel.fromEntity(entity.category!)
-          : null,
+          entity.category != null
+              ? CategoryApiModel.fromEntity(entity.category!)
+              : null,
       price: entity.price,
       stock: entity.stock,
       imageUrl: entity.imageUrl,
