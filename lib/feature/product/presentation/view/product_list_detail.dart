@@ -70,13 +70,13 @@ class _ProductListScreenState extends State<ProductListScreen>
           SliverToBoxAdapter(
             child: BlocListener<ProductViewModel, ProductState>(
               listener: (context, state) {
-                if (state.products.isNotEmpty && !state.isLoading) {
+                if (state.allProducts.isNotEmpty && !state.isLoading) {
                   _animationController.forward();
                 }
               },
               child: BlocBuilder<ProductViewModel, ProductState>(
                 builder: (context, state) {
-                  if (state.isLoading && state.products.isEmpty) {
+                  if (state.isLoading && state.allProducts.isEmpty) {
                     return _buildLoadingView();
                   }
 
@@ -84,7 +84,7 @@ class _ProductListScreenState extends State<ProductListScreen>
                     return _buildErrorView(state.errorMessage!);
                   }
 
-                  if (state.products.isEmpty) {
+                  if (state.allProducts.isEmpty) {
                     return _buildEmptyView();
                   }
 
@@ -482,7 +482,7 @@ class _ProductListScreenState extends State<ProductListScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${state.products.length} Products',
+                      '${state.allProducts.length} Products',
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -524,9 +524,9 @@ class _ProductListScreenState extends State<ProductListScreen>
                   mainAxisSpacing: 15,
                   childAspectRatio: 0.65,
                 ),
-                itemCount: state.products.length,
+                itemCount: state.allProducts.length,
                 itemBuilder: (context, index) {
-                  final product = state.products[index];
+                  final product = state.allProducts[index];
                   final delay = index * 0.1;
                   final animationValue = Curves.easeOutBack.transform(
                     (_animationController.value - delay).clamp(0.0, 1.0),

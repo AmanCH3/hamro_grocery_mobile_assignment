@@ -221,6 +221,7 @@ Future<void> _initProductModule() async {
   serviceLocator.registerFactory(
     () => ProductViewModel(
       getAllProductUsecase: serviceLocator<GetAllProductUsecase>(),
+      categoryViewModel: serviceLocator<CategoryViewModel>(),
     ),
   );
 }

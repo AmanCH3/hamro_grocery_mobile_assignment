@@ -1,5 +1,7 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bloc/bloc.dart';
+
 import 'package:hamro_grocery_mobile/feature/category/domain/usecase/get_all_category_usecase.dart';
+import 'package:hamro_grocery_mobile/feature/category/presentation/view/category_card.dart';
 import 'package:hamro_grocery_mobile/feature/category/presentation/view_model/category_event.dart';
 import 'package:hamro_grocery_mobile/feature/category/presentation/view_model/category_state.dart';
 
@@ -7,11 +9,13 @@ class CategoryViewModel extends Bloc<CategoryEvent, CategoryState> {
   final GetAllCategoryUsecase getAllCategoryUsecase;
 
   CategoryViewModel({required this.getAllCategoryUsecase})
-    : super(const CategoryState.initial()) {
+    : super(CategoryState.initial()) {
     on<LoadCategoriesEvent>(_onLoadCategories);
+    on<SelectCategoryEvent>(_onSelectCategory);
 
     add(LoadCategoriesEvent());
   }
+
   Future<void> _onLoadCategories(
     LoadCategoriesEvent event,
     Emitter<CategoryState> emit,
@@ -26,5 +30,13 @@ class CategoryViewModel extends Bloc<CategoryEvent, CategoryState> {
         emit(state.copyWith(categories: categories, isLoading: false));
       },
     );
+  }
+
+  // Handles the selection logic.
+  void _onSelectCategory(
+    SelectCategoryEvent event,
+    Emitter<CategoryState> emit,
+  ) {
+    emit(state.copyWith(selectedCategoryId: () => event.categoryId));
   }
 }
