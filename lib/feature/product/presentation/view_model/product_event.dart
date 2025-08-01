@@ -12,8 +12,12 @@ sealed class ProductEvent extends Equatable {
 }
 
 class LoadProductsEvent extends ProductEvent {
+  final String? categoryName;
+
+  const LoadProductsEvent({this.categoryName});
+
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [categoryName];
 }
 
 class CategoryChangedEvent extends ProductEvent {

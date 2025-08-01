@@ -50,6 +50,7 @@ import 'package:hamro_grocery_mobile/feature/product/data/data_source/remote_dat
 import 'package:hamro_grocery_mobile/feature/product/data/repository/remote_repository/product_remote_repository.dart';
 import 'package:hamro_grocery_mobile/feature/product/domain/repository/product_repository.dart';
 import 'package:hamro_grocery_mobile/feature/product/domain/usecase/get_all_product_usecase.dart';
+import 'package:hamro_grocery_mobile/feature/product/domain/usecase/get_product_by_category.dart';
 import 'package:hamro_grocery_mobile/feature/product/presentation/view_model/product_view_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -235,11 +236,18 @@ Future<void> _initProductModule() async {
     ),
   );
 
+  serviceLocator.registerFactory(
+    () => GetProductsByCategoryUsecase(
+      productRepository: serviceLocator<IProductRepository>(),
+    ),
+  );
+
   // ===================== ViewModels ====================
   serviceLocator.registerFactory(
     () => ProductViewModel(
       getAllProductUsecase: serviceLocator<GetAllProductUsecase>(),
-      categoryViewModel: serviceLocator<CategoryViewModel>(),
+      getProductsByCategoryUsecase:
+          serviceLocator<GetProductsByCategoryUsecase>(),
     ),
   );
 

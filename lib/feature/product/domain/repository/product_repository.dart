@@ -4,4 +4,7 @@ import 'package:hamro_grocery_mobile/feature/product/domain/entity/product_entit
 
 abstract interface class IProductRepository {
   Future<Either<Failure, List<ProductEntity>>> getAllProducts();
+  Future<Either<Failure, List<ProductEntity>>> getProductsByCategory(
+    String categoryName,
+  );
 }

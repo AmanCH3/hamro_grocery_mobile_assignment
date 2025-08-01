@@ -1,74 +1,42 @@
-// import 'package:equatable/equatable.dart';
-// import 'package:hamro_grocery_mobile/feature/category/domain/entity/category_entity.dart';
-
-// class CategoryState extends Equatable {
-//   final List<CategoryEntity> categories;
-//   final bool isLoading;
-//   final String? errorMessage;
-
-//   const CategoryState({
-//     required this.categories,
-//     this.isLoading = false,
-//     this.errorMessage,
-//   });
-
-//   const CategoryState.initial()
-//     : categories = const [],
-//       isLoading = false,
-//       errorMessage = null;
-
-//   CategoryState copyWith({
-//     List<CategoryEntity>? categories,
-//     bool? isLoading,
-//     String? errorMessage,
-//   }) {
-//     return CategoryState(
-//       categories: categories ?? this.categories,
-//       isLoading: isLoading ?? this.isLoading,
-//       errorMessage: errorMessage ?? this.errorMessage,
-//     );
-//   }
-
-//   @override
-//   List<Object?> get props => [categories, isLoading, errorMessage];
-// }
-
 import 'package:equatable/equatable.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:hamro_grocery_mobile/feature/category/domain/entity/category_entity.dart';
 
-@immutable
 class CategoryState extends Equatable {
   final bool isLoading;
   final String? errorMessage;
   final List<CategoryEntity> categories;
-  // This property will track which category is currently selected.
-  final String? selectedCategoryId;
+  final String? selectedCategoryId; // This can be null for "All"
 
   const CategoryState({
-    this.isLoading = false,
+    required this.isLoading,
     this.errorMessage,
-    this.categories = const [],
+    required this.categories,
     this.selectedCategoryId,
   });
 
-  factory CategoryState.initial() => const CategoryState();
+  // Factory for the initial state
+  factory CategoryState.initial() {
+    return const CategoryState(
+      isLoading: false,
+      categories: [],
+      errorMessage: null,
+      selectedCategoryId: null, // Start with "All" selected
+    );
+  }
 
+  // --- FIX: The copyWith method should accept a nullable String ---
+  // The use of `String? Function()` was the source of the bug.
   CategoryState copyWith({
     bool? isLoading,
     String? errorMessage,
     List<CategoryEntity>? categories,
-    // A helper function allows us to explicitly set selectedCategoryId to null.
-    String? Function()? selectedCategoryId,
+    String? selectedCategoryId,
   }) {
     return CategoryState(
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage ?? this.errorMessage,
       categories: categories ?? this.categories,
-      selectedCategoryId:
-          selectedCategoryId != null
-              ? selectedCategoryId()
-              : this.selectedCategoryId,
+      selectedCategoryId: selectedCategoryId, // Directly assign the new value
     );
   }
 
@@ -77,6 +45,6 @@ class CategoryState extends Equatable {
     isLoading,
     errorMessage,
     categories,
-    selectedCategoryId,
+    selectedCategoryId, // IMPORTANT: Must be in props for Bloc to detect changes
   ];
 }

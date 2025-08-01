@@ -202,8 +202,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<ProductViewModel>().add(LoadProductsEvent());
-    // Categories are loaded automatically by their own ViewModel
+    // When the screen loads, we don't need to do anything here because
+    // both ViewModels are already set to load their initial data
+    // in their constructors.
   }
 
   @override
@@ -217,12 +218,27 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.black,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              // TODO: Implement search functionality
+            },
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [_buildCategorySection(), _buildProductSection()],
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Manually trigger a refresh for both categories and all products
+          context.read<CategoryViewModel>().add(LoadCategoriesEvent());
+          context.read<ProductViewModel>().add(const LoadProductsEvent());
+        },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [_buildCategorySection(), _buildProductSection()],
+          ),
         ),
       ),
     );
@@ -254,6 +270,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 itemCount: state.categories.length + 1, // +1 for "All"
                 itemBuilder: (context, index) {
+                  // --- "ALL" BUTTON LOGIC ---
                   if (index == 0) {
                     return Padding(
                       padding: const EdgeInsets.only(right: 8.0),
@@ -261,13 +278,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         name: 'All',
                         isSelected: state.selectedCategoryId == null,
                         onTap: () {
+                          // Update category UI
                           context.read<CategoryViewModel>().add(
                             const SelectCategoryEvent(null),
+                          );
+                          // Fetch all products from server
+                          context.read<ProductViewModel>().add(
+                            const LoadProductsEvent(),
                           );
                         },
                       ),
                     );
                   }
+
+                  // --- SPECIFIC CATEGORY BUTTON LOGIC ---
                   final category = state.categories[index - 1];
                   return Padding(
                     padding: const EdgeInsets.only(right: 8.0),
@@ -276,8 +300,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       isSelected:
                           state.selectedCategoryId == category.categoryId,
                       onTap: () {
+                        // Update category UI
                         context.read<CategoryViewModel>().add(
                           SelectCategoryEvent(category.categoryId),
+                        );
+                        // Fetch products for this category from server
+                        context.read<ProductViewModel>().add(
+                          LoadProductsEvent(categoryName: category.name),
                         );
                       },
                     ),
@@ -295,19 +324,28 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Products'),
+        _buildSectionHeader('Latest Products'),
         BlocBuilder<ProductViewModel, ProductState>(
           builder: (context, state) {
-            if (state.isLoading && state.allProducts.isEmpty) {
+            // --- USE SIMPLIFIED STATE ---
+            if (state.isLoading && state.products.isEmpty) {
               return const SizedBox(
                 height: 260,
                 child: Center(child: CircularProgressIndicator()),
               );
             }
-            if (state.filteredProducts.isEmpty) {
+            if (state.errorMessage != null && state.products.isEmpty) {
+              return SizedBox(
+                height: 260,
+                child: Center(child: Text(state.errorMessage!)),
+              );
+            }
+            if (state.products.isEmpty && !state.isLoading) {
               return const SizedBox(
                 height: 260,
-                child: Center(child: Text('No products found.')),
+                child: Center(
+                  child: Text('No products found in this category.'),
+                ),
               );
             }
             return SizedBox(
@@ -315,11 +353,11 @@ class _HomeScreenState extends State<HomeScreen> {
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                itemCount: state.filteredProducts.length,
+                itemCount: state.products.length,
                 itemBuilder: (context, index) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: ProductCard(product: state.filteredProducts[index]),
+                    child: ProductCard(product: state.products[index]),
                   );
                 },
               ),

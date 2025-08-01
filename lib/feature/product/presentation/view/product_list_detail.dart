@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hamro_grocery_mobile/feature/category/presentation/view/category_card.dart';
+import 'package:hamro_grocery_mobile/feature/category/presentation/view_model/category_event.dart';
+import 'package:hamro_grocery_mobile/feature/category/presentation/view_model/category_state.dart';
+import 'package:hamro_grocery_mobile/feature/category/presentation/view_model/category_view_model.dart';
 import 'package:hamro_grocery_mobile/feature/favorite/view/favorite_screen.dart';
 import 'package:hamro_grocery_mobile/feature/product/presentation/view/product_card.dart';
 import 'package:hamro_grocery_mobile/feature/product/presentation/view_model/product_event.dart';
@@ -23,19 +27,16 @@ class _ProductListScreenState extends State<ProductListScreen>
   @override
   void initState() {
     super.initState();
-
-    // Initialize animations
+    // Animation setup...
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-
     _headerAnimationController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
 
-    // Scroll listener for floating button
     _scrollController.addListener(() {
       if (_scrollController.offset > 300 && !_showScrollToTop) {
         setState(() => _showScrollToTop = true);
@@ -44,8 +45,6 @@ class _ProductListScreenState extends State<ProductListScreen>
       }
     });
 
-    // Load products and start animations
-    context.read<ProductViewModel>().add(LoadProductsEvent());
     _headerAnimationController.forward();
   }
 
@@ -64,31 +63,26 @@ class _ProductListScreenState extends State<ProductListScreen>
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
-          // Beautiful App Bar
           _buildSliverAppBar(),
-
-          // Main Content
+          _buildCategorySelector(),
           SliverToBoxAdapter(
             child: BlocListener<ProductViewModel, ProductState>(
               listener: (context, state) {
-                if (state.allProducts.isNotEmpty && !state.isLoading) {
-                  _animationController.forward();
+                if (!state.isLoading) {
+                  _animationController.forward(from: 0.0);
                 }
               },
               child: BlocBuilder<ProductViewModel, ProductState>(
                 builder: (context, state) {
-                  if (state.isLoading && state.allProducts.isEmpty) {
+                  if (state.isLoading && state.products.isEmpty) {
                     return _buildLoadingView();
                   }
-
-                  if (state.errorMessage != null) {
+                  if (state.errorMessage != null && state.products.isEmpty) {
                     return _buildErrorView(state.errorMessage!);
                   }
-
-                  if (state.allProducts.isEmpty) {
-                    return _buildEmptyView();
+                  if (state.products.isEmpty && !state.isLoading) {
+                    return _buildEmptyOrNoResultsView(context);
                   }
-
                   return _buildProductGrid(state);
                 },
               ),
@@ -100,7 +94,224 @@ class _ProductListScreenState extends State<ProductListScreen>
     );
   }
 
+  Widget _buildCategorySelector() {
+    return SliverToBoxAdapter(
+      child: BlocBuilder<CategoryViewModel, CategoryState>(
+        builder: (context, categoryState) {
+          if (categoryState.isLoading) {
+            return const SizedBox(
+              height: 60,
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+          if (categoryState.categories.isEmpty) return const SizedBox.shrink();
+
+          return Container(
+            height: 60,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: categoryState.categories.length + 1,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  child: _buildCategoryItem(context, categoryState, index),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildCategoryItem(
+    BuildContext context,
+    CategoryState categoryState,
+    int index,
+  ) {
+    if (index == 0) {
+      return CategoryCard(
+        name: "All",
+        isSelected: categoryState.selectedCategoryId == null,
+        onTap: () {
+          context.read<CategoryViewModel>().add(
+            const SelectCategoryEvent(null),
+          );
+          context.read<ProductViewModel>().add(const LoadProductsEvent());
+        },
+      );
+    }
+    final category = categoryState.categories[index - 1];
+    return CategoryCard(
+      name: category.name,
+      isSelected: categoryState.selectedCategoryId == category.categoryId,
+      onTap: () {
+        context.read<CategoryViewModel>().add(
+          SelectCategoryEvent(category.categoryId),
+        );
+        context.read<ProductViewModel>().add(
+          LoadProductsEvent(categoryName: category.name),
+        );
+      },
+    );
+  }
+
+  Widget _buildProductGrid(ProductState state) {
+    return Column(
+      children: [
+        Container(
+          margin: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.white, Colors.green.shade50],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.green.withOpacity(0.1),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.inventory_2_outlined,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${state.products.length} Products Found',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      'Available in this selection',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+              if (state.isLoading)
+                const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: AnimatedBuilder(
+            animation: _animationController,
+            builder: (context, child) {
+              final selectedCategoryId =
+                  context.read<CategoryViewModel>().state.selectedCategoryId;
+              return GridView.builder(
+                key: ValueKey(selectedCategoryId),
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 15,
+                  mainAxisSpacing: 15,
+                  childAspectRatio: 0.65,
+                ),
+                itemCount: state.products.length,
+                itemBuilder: (context, index) {
+                  final product = state.products[index];
+                  final delay = (index * 0.05).clamp(0.0, 1.0);
+                  final animationValue = Curves.easeOut.transform(
+                    (_animationController.value - delay).clamp(0.0, 1.0),
+                  );
+                  return Transform.translate(
+                    offset: Offset(0, 50 * (1 - animationValue)),
+                    child: Opacity(
+                      opacity: animationValue,
+                      child: ProductCard(product: product),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 100),
+      ],
+    );
+  }
+
+  Widget _buildEmptyOrNoResultsView(BuildContext context) {
+    final isFiltered =
+        context.read<CategoryViewModel>().state.selectedCategoryId != null;
+    final icon =
+        isFiltered ? Icons.search_off_rounded : Icons.shopping_basket_outlined;
+    final title = isFiltered ? 'No Products Found' : 'No Products Available';
+    final message =
+        isFiltered
+            ? 'There are no products available in this category.'
+            : 'We\'re currently updating our inventory.\nPlease check back soon!';
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.5,
+      padding: const EdgeInsets.all(24),
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 60, color: Colors.grey[400]),
+          const SizedBox(height: 24),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- UNCHANGED WIDGETS BELOW (SliverAppBar, LoadingView, ErrorView, etc.) ---
   Widget _buildSliverAppBar() {
+    /* ... No changes ... */
     return SliverAppBar(
       expandedHeight: 200,
       floating: false,
@@ -123,7 +334,6 @@ class _ProductListScreenState extends State<ProductListScreen>
           ),
           child: Stack(
             children: [
-              // Background pattern
               Positioned.fill(
                 child: Opacity(
                   opacity: 0.1,
@@ -139,8 +349,6 @@ class _ProductListScreenState extends State<ProductListScreen>
                   ),
                 ),
               ),
-
-              // Content
               Positioned(
                 bottom: 30,
                 left: 20,
@@ -191,7 +399,6 @@ class _ProductListScreenState extends State<ProductListScreen>
         ),
       ),
       actions: [
-        // --- FAVORITES BUTTON ---
         Container(
           margin: const EdgeInsets.only(right: 8),
           decoration: BoxDecoration(
@@ -211,7 +418,6 @@ class _ProductListScreenState extends State<ProductListScreen>
             },
           ),
         ),
-
         Container(
           margin: const EdgeInsets.only(right: 8),
           decoration: BoxDecoration(
@@ -239,6 +445,7 @@ class _ProductListScreenState extends State<ProductListScreen>
   }
 
   Widget _buildLoadingView() {
+    /* ... No changes ... */
     return Container(
       height: MediaQuery.of(context).size.height * 0.6,
       padding: const EdgeInsets.all(40),
@@ -309,6 +516,7 @@ class _ProductListScreenState extends State<ProductListScreen>
   }
 
   Widget _buildErrorView(String errorMessage) {
+    /* ... No changes ... */
     return Container(
       height: MediaQuery.of(context).size.height * 0.6,
       padding: const EdgeInsets.all(24),
@@ -392,190 +600,8 @@ class _ProductListScreenState extends State<ProductListScreen>
     );
   }
 
-  Widget _buildEmptyView() {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.6,
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(30),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.shopping_basket_outlined,
-                    size: 50,
-                    color: Colors.grey[400],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'No Products Available',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'We\'re currently updating our inventory.\nPlease check back soon!',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                    height: 1.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                TextButton.icon(
-                  onPressed: () {
-                    context.read<ProductViewModel>().add(LoadProductsEvent());
-                  },
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Refresh'),
-                  style: TextButton.styleFrom(foregroundColor: Colors.green),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProductGrid(ProductState state) {
-    return Column(
-      children: [
-        // Stats header
-        Container(
-          margin: const EdgeInsets.all(20),
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.white, Colors.green.shade50],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.green.withOpacity(0.1),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.green,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.inventory_rounded,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${state.allProducts.length} Products',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    Text(
-                      'Available in store',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-              ),
-              if (state.isLoading)
-                const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
-                  ),
-                ),
-            ],
-          ),
-        ),
-
-        // Product grid
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: AnimatedBuilder(
-            animation: _animationController,
-            builder: (context, child) {
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 15,
-                  mainAxisSpacing: 15,
-                  childAspectRatio: 0.65,
-                ),
-                itemCount: state.allProducts.length,
-                itemBuilder: (context, index) {
-                  final product = state.allProducts[index];
-                  final delay = index * 0.1;
-                  final animationValue = Curves.easeOutBack.transform(
-                    (_animationController.value - delay).clamp(0.0, 1.0),
-                  );
-
-                  return Transform.scale(
-                    scale: animationValue,
-                    child: Transform.translate(
-                      offset: Offset(0, 50 * (1 - animationValue)),
-                      child: Opacity(
-                        opacity: animationValue,
-                        child: ProductCard(product: product),
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-
-        const SizedBox(height: 100), // Bottom padding
-      ],
-    );
-  }
-
   Widget _buildFloatingActionButton() {
+    /* ... No changes ... */
     return AnimatedScale(
       scale: _showScrollToTop ? 1.0 : 0.0,
       duration: const Duration(milliseconds: 300),
@@ -598,6 +624,7 @@ class _ProductListScreenState extends State<ProductListScreen>
   }
 
   void _showSearchDialog() {
+    /* ... No changes ... */
     showDialog(
       context: context,
       builder:
@@ -635,6 +662,7 @@ class _ProductListScreenState extends State<ProductListScreen>
   }
 
   void _showFilterDialog() {
+    /* ... No changes ... */
     showDialog(
       context: context,
       builder:

@@ -4,7 +4,7 @@ class ApiEndpoints {
   static const connectionTimeout = Duration(seconds: 1000);
   static const receiveTimeout = Duration(seconds: 1000);
 
-  static const String serverAddress = "http://10.84.77.20:8081";
+  static const String serverAddress = "http://10.84.77.182:8081";
 
   static const String baseUrl = "$serverAddress/api/";
   static const String imageUrl = "$serverAddress/uploads/";
@@ -15,6 +15,8 @@ class ApiEndpoints {
   static const String getAllCategories = "categories/";
 
   static const String getAllProducts = "products/";
+  static String getProductsByCategory(String categoryName) =>
+      'products/category/$categoryName';
 
   // User Profile Endpoints
   static const String getUserProfile = "auth/profile";

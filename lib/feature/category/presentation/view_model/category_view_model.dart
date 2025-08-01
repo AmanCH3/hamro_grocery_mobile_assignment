@@ -1,7 +1,5 @@
 import 'package:bloc/bloc.dart';
-
 import 'package:hamro_grocery_mobile/feature/category/domain/usecase/get_all_category_usecase.dart';
-import 'package:hamro_grocery_mobile/feature/category/presentation/view/category_card.dart';
 import 'package:hamro_grocery_mobile/feature/category/presentation/view_model/category_event.dart';
 import 'package:hamro_grocery_mobile/feature/category/presentation/view_model/category_state.dart';
 
@@ -32,11 +30,12 @@ class CategoryViewModel extends Bloc<CategoryEvent, CategoryState> {
     );
   }
 
-  // Handles the selection logic.
+  // --- FIX: Pass the value directly to copyWith ---
   void _onSelectCategory(
     SelectCategoryEvent event,
     Emitter<CategoryState> emit,
   ) {
-    emit(state.copyWith(selectedCategoryId: () => event.categoryId));
+    // The event can contain a String or null. Pass it directly.
+    emit(state.copyWith(selectedCategoryId: event.categoryId));
   }
 }

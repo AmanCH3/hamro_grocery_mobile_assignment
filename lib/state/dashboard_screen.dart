@@ -15,7 +15,7 @@ class DashboardScreen extends StatelessWidget {
         builder: (context, state) {
           return Scaffold(
             appBar: AppBar(
-              title: Text(state.appBarTitle),
+              title: Image.asset('assets/hamro2.png', height: 40),
               backgroundColor: Colors.white,
               elevation: 1,
               titleTextStyle: const TextStyle(
