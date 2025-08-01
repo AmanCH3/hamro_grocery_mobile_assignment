@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hamro_grocery_mobile/feature/favorite/view/favorite_screen.dart';
 import 'package:hamro_grocery_mobile/feature/order/presentation/view/order_detail_screen.dart';
 import 'package:hamro_grocery_mobile/feature/order/presentation/view/order_screen.dart';
 import 'package:hamro_grocery_mobile/view/auth/dashboard/history_screen.dart';
@@ -11,14 +12,14 @@ class BottomNavigationCubit extends Cubit<BottomNavigationState> {
   final List<Widget> _screens = [
     const HomeScreen(),
     const OrderScreen(),
-    const HistoryScreen(),
+    const FavoritesScreen(),
     const ProfileScreen(),
   ];
 
   final List<String> _appBarTitles = [
     'Hamro Grocery',
     'My List',
-    'My History',
+    'My Favourite',
     'Profile',
   ];
 

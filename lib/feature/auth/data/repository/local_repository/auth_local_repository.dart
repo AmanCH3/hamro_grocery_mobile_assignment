@@ -70,7 +70,10 @@ class AuthLocalRepository implements IAuthRepository {
   }
 
   @override
-  Future<Either<Failure, AuthEntity>> updateProfilePicture(String imagePath) {
+  Future<Either<Failure, AuthEntity>> updateProfilePicture(
+    String imagePath,
+    String? token,
+  ) {
     // TODO: implement updateProfilePicture
     throw UnimplementedError();
   }

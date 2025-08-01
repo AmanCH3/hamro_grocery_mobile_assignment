@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dartz/dartz.dart';
+import 'package:hamro_grocery_mobile/app/shared_pref/token_shared_pref.dart';
 import 'package:hamro_grocery_mobile/core/error/failure.dart';
 import 'package:hamro_grocery_mobile/app/usecase/usecase.dart';
 import 'package:hamro_grocery_mobile/feature/auth/domain/entity/auth_entity.dart';
@@ -8,12 +9,18 @@ import 'package:hamro_grocery_mobile/feature/auth/domain/repository/auth_reposit
 class UpdateProfilePictureUsecase
     implements UseCaseWithParams<AuthEntity, File> {
   final IAuthRepository authRepository;
+  final TokenSharedPrefs tokenSharedPrefs;
 
-  UpdateProfilePictureUsecase({required this.authRepository});
+  UpdateProfilePictureUsecase({
+    required this.authRepository,
+    required this.tokenSharedPrefs,
+  });
 
   @override
   Future<Either<Failure, AuthEntity>> call(File imageFile) async {
-    // This correctly calls the repository method with the file's path.
-    return await authRepository.updateProfilePicture(imageFile.path);
+    final tokenResult = await tokenSharedPrefs.getToken();
+    return tokenResult.fold((failure) => Left(failure), (token) async {
+      return await authRepository.updateProfilePicture(imageFile.path, token);
+    });
   }
 }

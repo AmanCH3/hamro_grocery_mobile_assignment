@@ -5,6 +5,8 @@ import 'package:hamro_grocery_mobile/feature/auth/data/data_source/auth_data_sou
 import 'package:hamro_grocery_mobile/feature/auth/data/dto/get_all_user_dto.dart';
 import 'package:hamro_grocery_mobile/feature/auth/data/model/user_api_model.dart';
 import 'package:hamro_grocery_mobile/feature/auth/domain/entity/auth_entity.dart';
+import 'package:hamro_grocery_mobile/common/image_utils.dart';
+import 'package:hamro_grocery_mobile/common/profile_utils.dart';
 import 'dart:io';
 
 class AuthRemoteDataSource implements IAuthDataSource {
@@ -99,26 +101,18 @@ class AuthRemoteDataSource implements IAuthDataSource {
   @override
   Future<AuthEntity> updateUserProfile(AuthEntity entity, String? token) async {
     try {
-      final Map<String, dynamic> dataMap = {
-        'fullName': entity.fullName,
-        'email': entity.email,
-        'location': entity.location,
-      };
-      if (entity.profilePicture != null && entity.profilePicture!.isNotEmpty) {
-        final file = File(entity.profilePicture!);
-        if (await file.exists()) {
-          dataMap['profilePicture'] = await MultipartFile.fromFile(
-            file.path,
-            filename: file.path.split('/').last,
-          );
-        }
-      }
-
-      final formData = FormData.fromMap(dataMap);
+      // Debug logging
+      ProfileUtils.logEntity('Entity being sent to updateUserProfile', entity);
+      
+      final userApiModel = UserApiModel.fromEntity(entity);
+      final jsonData = userApiModel.toJson();
+      print('update user profile request data: $jsonData');
+      print('profilePicture in request: ${jsonData['profilePicture']}');
+      
       final response = await _apiService.dio.put(
         ApiEndpoints.updateUserProfile,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
-        data: formData,
+        data: jsonData,
       );
       print('update user profile response : $response');
       if (response.statusCode == 200) {
@@ -131,46 +125,104 @@ class AuthRemoteDataSource implements IAuthDataSource {
         );
       }
     } on DioException catch (e) {
-      print('Dio Error: ${e.response?.data ?? e.message}');
       throw Exception("Failed to update user profile: ${e.message}");
     } catch (e) {
-      print('Unexpected Error: $e');
-      throw Exception("An unexpected error occurred: $e");
+      throw Exception("Failed to update user profile: $e");
     }
   }
 
   @override
-  Future<AuthEntity> updateProfilePicture(
-    String imagePath,
-    String? token,
-  ) async {
+  Future<AuthEntity> updateProfilePicture(String imagePath, String? token) async {
     try {
-      // The key 'profilePicture' MUST match multerUpload.single('profilePicture') in your route.
-      String fileName = imagePath.split('/').last;
-      FormData formData = FormData.fromMap({
-        'profilePicture': await MultipartFile.fromFile(
-          imagePath,
-          filename: fileName,
-        ),
-      });
+      // Use ImageUtils to validate and create FormData
+      final formData = await ImageUtils.createImageFormData(imagePath, 'profilePicture');
+      
+      if (formData == null) {
+        throw Exception("Failed to create form data for image upload");
+      }
 
       final response = await _apiService.dio.put(
-        ApiEndpoints
-            .updateUserProfilePicture, // Uses the '/profile/picture' endpoint
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        ApiEndpoints.updateUserProfilePicture,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'multipart/form-data',
+          },
+          // Increase timeout for file uploads
+          sendTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 30),
+        ),
         data: formData,
       );
 
-      if (response.statusCode == 200) {
-        final updatedUserJson = response.data['data'] ?? response.data;
-        return UserApiModel.fromJson(updatedUserJson).toEntity();
+      print('update profile picture response: $response');
+
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        final updatedUserJson = response.data['data'];
+        final updatedUserApiModel = UserApiModel.fromJson(updatedUserJson);
+        return updatedUserApiModel.toEntity();
       } else {
-        throw Exception("Failed to update picture: ${response.statusMessage}");
+        final errorMessage = response.data['message'] ?? response.statusMessage;
+        throw Exception("Failed to update profile picture: $errorMessage");
       }
     } on DioException catch (e) {
-      throw Exception(
-        "Failed to update picture: ${e.response?.data['message'] ?? e.message}",
-      );
+      String errorMessage;
+      
+      if (e.response != null) {
+        // Server responded with error
+        final responseData = e.response?.data;
+        if (responseData is Map<String, dynamic>) {
+          errorMessage = responseData['message'] ?? 'Upload failed';
+        } else {
+          errorMessage = e.response?.statusMessage ?? 'Upload failed';
+        }
+      } else if (e.type == DioExceptionType.connectionTimeout) {
+        errorMessage = 'Connection timeout. Please check your internet connection.';
+      } else if (e.type == DioExceptionType.receiveTimeout) {
+        errorMessage = 'Upload timeout. Please try again.';
+      } else {
+        errorMessage = e.message ?? 'Upload failed';
+      }
+      
+      throw Exception("Failed to update profile picture: $errorMessage");
+    } catch (e) {
+      throw Exception("Failed to update profile picture: $e");
     }
   }
 }
+
+  // @override
+  // Future<AuthEntity> updateProfilePicture(
+  //   String imagePath,
+  //   String? token,
+  // )  {
+  //   try {
+  //   //   // The key 'profilePicture' MUST match multerUpload.single('profilePicture') in your route.
+  //   //   String fileName = imagePath.split('/').last;
+  //   //   FormData formData = FormData.fromMap({
+  //   //     'profilePicture': await MultipartFile.fromFile(
+  //   //       imagePath,
+  //   //       filename: fileName,
+  //   //     ),
+  //   //   });
+  //   //   final response = await apiService.dio.put(
+  //   //     ApiEndpoints
+  //   //         .updateUserProfilePicture, // Uses the '/profile/picture' endpoint
+  //   //     options: Options(headers: {'Authorization': 'Bearer $token'}),
+  //   //     data: formData,
+  //   //   );
+
+  //   //   if (response.statusCode == 200) {
+  //   //     final updatedUserJson = response.data['data'] ?? response.data;
+  //   //     return UserApiModel.fromJson(updatedUserJson).toEntity();
+  //   //   } else {
+  //   //     throw Exception("Failed to update picture: ${response.statusMessage}");
+  //   //   }
+  //   // } on DioException catch (e) {
+  //   //   throw Exception(
+  //   //     "Failed to update picture: ${e.response?.data['message'] ?? e.message}",
+  //   //   );
+  //   // }
+  //   }
+  // }
+

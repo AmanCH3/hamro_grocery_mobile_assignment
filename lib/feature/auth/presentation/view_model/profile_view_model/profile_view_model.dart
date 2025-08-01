@@ -8,7 +8,7 @@ import 'profile_event.dart';
 import 'profile_state.dart';
 
 class ProfileViewModel extends Bloc<ProfileEvent, ProfileState> {
-  final GetUserUsecase _userGetUseCase;
+  final GetUserUsecase _getUserUseCase;
   final UserUpdateUsecase _userUpdateUsecase;
   final UpdateProfilePictureUsecase _updateProfilePictureUsecase;
   final UserLogoutUseCase _userLogoutUseCase;
@@ -18,19 +18,19 @@ class ProfileViewModel extends Bloc<ProfileEvent, ProfileState> {
     required UserUpdateUsecase userUpdateUseCase,
     required UpdateProfilePictureUsecase updateProfilePictureUsecase,
     required UserLogoutUseCase userLogoutUseCase,
-  }) : _userGetUseCase = userGetUseCase,
+  }) : _getUserUseCase = userGetUseCase,
        _userUpdateUsecase = userUpdateUseCase,
        _updateProfilePictureUsecase = updateProfilePictureUsecase,
        _userLogoutUseCase = userLogoutUseCase,
        super(ProfileState.initial()) {
+    // Register all event handlers
     on<LoadProfileEvent>(_onProfileLoad);
+    on<ProfileImagePickedEvent>(_onProfileImagePicked);
     on<UpdateProfileEvent>(_onProfileUpdate);
     on<UpdateProfilePictureEvent>(_onProfilePictureUpdate);
     on<ToggleEditModeEvent>(_onToggleEditMode);
     on<ClearMessageEvent>(_onClearMessage);
-    on<ProfileImagePickedEvent>(_onProfileImagePicked);
     on<LogoutEvent>(_onLogout);
-
     add(LoadProfileEvent());
   }
 
@@ -39,7 +39,7 @@ class ProfileViewModel extends Bloc<ProfileEvent, ProfileState> {
     Emitter<ProfileState> emit,
   ) async {
     emit(state.copyWith(isLoading: true, newProfileImageFile: () => null));
-    final result = await _userGetUseCase();
+    final result = await _getUserUseCase();
     result.fold(
       (failure) => emit(
         state.copyWith(isLoading: false, errorMessage: () => failure.message),
@@ -50,6 +50,7 @@ class ProfileViewModel extends Bloc<ProfileEvent, ProfileState> {
     );
   }
 
+  /// Updates the state with the image file the user picked from the gallery.
   void _onProfileImagePicked(
     ProfileImagePickedEvent event,
     Emitter<ProfileState> emit,
@@ -57,59 +58,72 @@ class ProfileViewModel extends Bloc<ProfileEvent, ProfileState> {
     emit(state.copyWith(newProfileImageFile: () => event.imageFile));
   }
 
+  /// Handles the "Save" button press. It first updates text fields.
+  /// If successful and a new image exists, it triggers the image upload.
   Future<void> _onProfileUpdate(
     UpdateProfileEvent event,
     Emitter<ProfileState> emit,
   ) async {
     emit(state.copyWith(isLoading: true));
     final result = await _userUpdateUsecase(event.authEntity);
+
     result.fold(
       (failure) => emit(
         state.copyWith(isLoading: false, errorMessage: () => failure.message),
       ),
       (updatedUser) {
-        // If no new image is being uploaded, we can stop editing and show success.
-        final bool shouldStopEditing = state.newProfileImageFile == null;
-        emit(
-          state.copyWith(
-            isLoading: false,
-            authEntity: updatedUser,
-            isEditing: !shouldStopEditing,
-            errorMessage:
-                () =>
-                    shouldStopEditing ? 'Profile updated successfully!' : null,
-          ),
-        );
+        final imageToUpload = state.newProfileImageFile;
+        // If an image was picked, chain the next event to upload it.
+        if (imageToUpload != null) {
+          // Update the user data in the state but keep loading.
+          emit(state.copyWith(authEntity: updatedUser));
+          add(UpdateProfilePictureEvent(imageFile: imageToUpload));
+        } else {
+          // If no new image, the process is complete.
+          emit(
+            state.copyWith(
+              isLoading: false,
+              authEntity: updatedUser,
+              isEditing: false, // Turn off editing mode
+              errorMessage: () => 'Profile updated successfully!',
+            ),
+          );
+        }
       },
     );
   }
 
+  /// Handles the actual profile picture upload. This is typically called by _onProfileUpdate.
   Future<void> _onProfilePictureUpdate(
     UpdateProfilePictureEvent event,
     Emitter<ProfileState> emit,
   ) async {
-    emit(state.copyWith(isLoading: true));
+    // The state should already be loading.
     final result = await _updateProfilePictureUsecase(event.imageFile);
     result.fold(
       (failure) => emit(
         state.copyWith(isLoading: false, errorMessage: () => failure.message),
       ),
+      // On success, the entire update process is finished.
       (updatedUser) => emit(
         state.copyWith(
           isLoading: false,
           authEntity: updatedUser,
           isEditing: false, // Turn off editing mode
           errorMessage: () => 'Profile updated successfully!',
-          newProfileImageFile: () => null, // Clear the picked image
+          // IMPORTANT: Clear the picked image file to show the new network image.
+          newProfileImageFile: () => null,
         ),
       ),
     );
   }
 
+  /// Toggles the UI between view mode and edit mode.
   void _onToggleEditMode(
     ToggleEditModeEvent event,
     Emitter<ProfileState> emit,
   ) {
+    // If exiting edit mode, clear any unsaved image preview.
     if (state.isEditing) {
       emit(
         state.copyWith(
@@ -122,10 +136,12 @@ class ProfileViewModel extends Bloc<ProfileEvent, ProfileState> {
     }
   }
 
+  /// Clears any message from the state, used after a SnackBar is shown.
   void _onClearMessage(ClearMessageEvent event, Emitter<ProfileState> emit) {
     emit(state.copyWith(errorMessage: () => null));
   }
 
+  /// Handles user logout.
   Future<void> _onLogout(LogoutEvent event, Emitter<ProfileState> emit) async {
     emit(state.copyWith(isLoading: true));
     final result = await _userLogoutUseCase();

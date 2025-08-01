@@ -35,6 +35,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   final _phoneController = TextEditingController();
   bool _applyDiscount = false;
   PaymentMethod _paymentMethod = PaymentMethod.cod;
+
   @override
   void dispose() {
     _addressController.dispose();
@@ -42,14 +43,16 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
     super.dispose();
   }
 
+  /// This function is the entry point when the user clicks the final button.
   void _processOrder() {
-    // 1. Validate the form before proceeding
+    // 1. Validate the form before proceeding.
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    // 2. Based on the selected payment method, dispatch the correct event
+    // 2. Based on the selected payment method, dispatch the correct event.
     if (_paymentMethod == PaymentMethod.cod) {
+      // For Cash on Delivery, dispatch to the original OrderBloc.
       context.read<OrderBloc>().add(
         CreateOrder(
           items: widget.items,
@@ -59,7 +62,8 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
         ),
       );
     } else {
-      // For Khalti, start the payment flow by dispatching to PaymentBloc
+      // For Khalti, start the payment flow by dispatching to PaymentBloc.
+      // This will call our backend to get the payment identifier (pidx).
       context.read<PaymentBloc>().add(
         KhaltiPaymentStarted(
           items: widget.items,
@@ -72,32 +76,35 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   }
 
   /// This helper method launches the Khalti SDK's UI.
-  /// It is called only after our backend has successfully initiated the payment
+  /// It should only be called *after* our backend has successfully initiated the payment
   /// and returned a `pidx`.
   void _launchKhalti(String pidx) {
     KhaltiScope.of(context).pay(
       config: PaymentConfig(
-        amount: (widget.totalPrice * 100).toInt(), // Amount in paisa
-        productIdentity: pidx, // The pidx from your server
+        amount:
+            (widget.totalPrice * 100).round(), // Amount in paisa for display
+        productIdentity: pidx, // Use the PIDX from your server
         productName: 'Hamro Grocery Order',
-        // You can pass additional data here if your backend needs it
       ),
-      // This function is called after the user successfully completes the payment in Khalti's UI
+      // This function is called after the user successfully completes the payment in Khalti's UI.
       onSuccess: (PaymentSuccessModel success) {
-        // Now, we need to verify this payment on our server.
-        // Dispatch an event to our PaymentBloc to handle server-side verification.
+        // Now, we must verify this payment on our server.
+        // We use the pidx from the success model as it's the source of truth.
         context.read<PaymentBloc>().add(
-          KhaltiPaymentVerified(result: success, pidx: pidx),
+          KhaltiPaymentVerified(pidx: success.idx),
         );
       },
-      // This function is called if the user cancels or if an error occurs within Khalti's UI
+      // This function is called if the user cancels or if an error occurs within Khalti's UI.
       onFailure: (PaymentFailureModel failure) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              failure.message ?? 'Khalti payment failed or was cancelled',
-            ),
-            backgroundColor: Colors.red,
+          SnackBar(content: Text(failure.message), backgroundColor: Colors.red),
+        );
+      },
+      onCancel: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment Cancelled'),
+            backgroundColor: Colors.orange,
           ),
         );
       },
@@ -106,10 +113,10 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Use MultiBlocListener to handle side effects from both OrderBloc and PaymentBloc
+    // A MultiBlocListener is perfect for handling side effects from multiple BLoCs on one screen.
     return MultiBlocListener(
       listeners: [
-        // Listener for the original OrderBloc (handles COD)
+        // Listener for the original OrderBloc (handles COD success/failure).
         BlocListener<OrderBloc, OrderState>(
           listener: (context, state) {
             if (state.status == OrderRequestStatus.success) {
@@ -131,11 +138,11 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
             }
           },
         ),
-        // Listener for the new PaymentBloc (handles Khalti)
+        // Listener for the new PaymentBloc (handles all Khalti steps).
         BlocListener<PaymentBloc, PaymentState>(
           listener: (context, state) {
             if (state.status == PaymentStatus.initiationSuccess) {
-              // The backend has given us the pidx, now it's time to launch Khalti's UI
+              // The backend has given us the pidx, now it's time to launch Khalti's UI.
               _launchKhalti(state.pidx!);
             } else if (state.status == PaymentStatus.initiationFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -209,8 +216,6 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                               : null,
                 ),
                 const SizedBox(height: 24),
-
-                // --- PAYMENT METHOD SELECTION UI ---
                 _buildSectionHeader('Payment Method'),
                 RadioListTile<PaymentMethod>(
                   title: const Text('Cash on Delivery'),
@@ -230,12 +235,11 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                   onChanged: (value) => setState(() => _paymentMethod = value!),
                   activeColor: Colors.teal,
                 ),
-
                 const SizedBox(height: 24),
                 _buildSectionHeader('Member Perks'),
                 SwitchListTile(
-                  title: const Text('Apply 10% Member Discount'),
-                  subtitle: const Text('Uses available loyalty points.'),
+                  title: const Text('Apply 25% Member Discount'),
+                  subtitle: const Text('Uses 150 loyalty points'),
                   value: _applyDiscount,
                   onChanged: (value) => setState(() => _applyDiscount = value),
                   secondary: const Icon(Icons.star_border),
@@ -289,7 +293,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   Widget _buildPlaceOrderButton() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      // We must listen to both BLoCs to determine the loading state
+      // We listen to both BLoCs to determine the overall loading state.
       child: BlocBuilder<PaymentBloc, PaymentState>(
         builder: (context, paymentState) {
           return BlocBuilder<OrderBloc, OrderState>(

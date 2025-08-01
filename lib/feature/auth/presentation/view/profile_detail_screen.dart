@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hamro_grocery_mobile/feature/auth/domain/entity/auth_entity.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:hamro_grocery_mobile/common/null_safety_utils.dart';
+import 'package:hamro_grocery_mobile/common/profile_utils.dart';
 import '../view_model/profile_view_model/profile_event.dart';
 import '../view_model/profile_view_model/profile_state.dart';
 import '../view_model/profile_view_model/profile_view_model.dart';
@@ -65,17 +67,19 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                 onPressed: () {
                   if (state.isEditing) {
                     if (_formKey.currentState!.validate()) {
-                      final updatedEntity = AuthEntity(
-                        userId: state.authEntity!.userId,
-                        fullName: _fullNameController.text,
-                        email: state.authEntity!.email,
-                        password: state.authEntity!.password,
-                        location: _locationController.text,
+                      final updatedEntity = ProfileUtils.createUpdateEntity(
+                        currentEntity: state.authEntity!,
+                        newFullName: _fullNameController.text,
+                        newLocation: _locationController.text,
                       );
+                      
+                      // Debug logging
+                      ProfileUtils.logEntity('Current Entity', state.authEntity!);
+                      ProfileUtils.logEntity('Updated Entity', updatedEntity);
+                      
                       context.read<ProfileViewModel>().add(
                         UpdateProfileEvent(authEntity: updatedEntity),
                       );
-                      // newProfileImage: state.newProfileImageFile));
                     }
                   } else {
                     context.read<ProfileViewModel>().add(ToggleEditModeEvent());
@@ -156,9 +160,8 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
-                        key: Key(state.authEntity!.grocerypoints.toString()),
-                        initialValue:
-                            state.authEntity!.grocerypoints?.toString() ?? '0',
+                        key: Key(NullSafetyUtils.intToString(state.authEntity!.grocerypoints)),
+                        initialValue: NullSafetyUtils.intToString(state.authEntity!.grocerypoints),
                         enabled: false,
                         decoration: _inputDecoration(
                           'Grocery Points',
@@ -186,8 +189,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     ImageProvider? backgroundImage;
     if (state.newProfileImageFile != null) {
       backgroundImage = FileImage(state.newProfileImageFile!);
-    } else if (state.authEntity?.profilePicture != null &&
-        state.authEntity!.profilePicture!.isNotEmpty) {
+    } else if (NullSafetyUtils.isNotNullOrEmpty(state.authEntity?.profilePicture)) {
       backgroundImage = NetworkImage(state.authEntity!.profilePicture!);
     }
 

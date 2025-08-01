@@ -59,7 +59,7 @@ class DashboardScreen extends StatelessWidget {
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.history),
-                  label: 'My History',
+                  label: 'My Favorite',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.person),

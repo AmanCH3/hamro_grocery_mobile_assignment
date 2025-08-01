@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hamro_grocery_mobile/feature/favorite/view/favorite_screen.dart';
 import 'package:hamro_grocery_mobile/feature/product/presentation/view/product_card.dart';
 import 'package:hamro_grocery_mobile/feature/product/presentation/view_model/product_event.dart';
 import 'package:hamro_grocery_mobile/feature/product/presentation/view_model/product_state.dart';
@@ -190,6 +191,27 @@ class _ProductListScreenState extends State<ProductListScreen>
         ),
       ),
       actions: [
+        // --- FAVORITES BUTTON ---
+        Container(
+          margin: const EdgeInsets.only(right: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: IconButton(
+            icon: const Icon(
+              Icons.favorite_border_rounded,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+              );
+            },
+          ),
+        ),
+
         Container(
           margin: const EdgeInsets.only(right: 8),
           decoration: BoxDecoration(

@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:hamro_grocery_mobile/feature/order/domain/entity/order_item_entity.dart';
-import 'package:khalti_flutter/khalti_flutter.dart';
-import 'package:khalti_flutter/khalti_flutter.dart';
+// Remove the unnecessary import
+// import 'package:khalti_flutter/khalti_flutter.dart';
 
 abstract class PaymentEvent extends Equatable {
   const PaymentEvent();
@@ -10,6 +10,7 @@ abstract class PaymentEvent extends Equatable {
 }
 
 class KhaltiPaymentStarted extends PaymentEvent {
+  // ... this class is correct, no changes needed
   final List<OrderItem> items;
   final String address;
   final String phone;
@@ -27,11 +28,10 @@ class KhaltiPaymentStarted extends PaymentEvent {
 }
 
 class KhaltiPaymentVerified extends PaymentEvent {
-  final PaymentSuccessModel result;
   final String pidx;
 
-  const KhaltiPaymentVerified({required this.result, required this.pidx});
+  const KhaltiPaymentVerified({required this.pidx}); // <-- FIX CONSTRUCTOR
 
   @override
-  List<Object> get props => [result, pidx];
+  List<Object> get props => [pidx]; // <-- FIX PROPS
 }

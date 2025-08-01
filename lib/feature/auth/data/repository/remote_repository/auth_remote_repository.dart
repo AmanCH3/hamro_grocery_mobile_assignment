@@ -73,8 +73,10 @@ class AuthRemoteRepository implements IAuthRepository {
   ) async {
     try {
       await _authRemoteDataSource.updateUserProfile(user, token);
+      print("user updated");
       return const Right(null);
     } catch (e) {
+      print(e);
       return Left(ApiFailure(message: e.toString(), statusCode: 500));
     }
   }
@@ -82,13 +84,9 @@ class AuthRemoteRepository implements IAuthRepository {
   @override
   Future<Either<Failure, AuthEntity>> updateProfilePicture(
     String imagePath,
+    String? token,
   ) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-      if (token == null) {
-        return Left(ApiFailure(message: 'User not authenticated.'));
-      }
       final updatedUser = await _authRemoteDataSource.updateProfilePicture(
         imagePath,
         token,

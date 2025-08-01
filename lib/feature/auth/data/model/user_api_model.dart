@@ -16,6 +16,7 @@
 
     final String email;
     final String? password;
+    @JsonKey(includeIfNull: true)
     final String? profilePicture;
     final String? location;
     @JsonKey(name: 'groceryPoints')

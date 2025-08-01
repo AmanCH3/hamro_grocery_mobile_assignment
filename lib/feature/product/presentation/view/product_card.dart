@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hamro_grocery_mobile/feature/favorite/view_model/favorite_event.dart';
+import 'package:hamro_grocery_mobile/feature/favorite/view_model/favorite_state.dart';
+import 'package:hamro_grocery_mobile/feature/favorite/view_model/favorite_view_model.dart';
 import 'package:hamro_grocery_mobile/feature/order/domain/entity/order_item_entity.dart';
 import 'package:hamro_grocery_mobile/feature/order/presentation/view/cart_screen.dart';
 import 'package:hamro_grocery_mobile/feature/order/presentation/view_model/cart_event.dart';
@@ -60,141 +63,194 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CartBloc, CartState>(
-      // Optimization: only rebuild if the cart item for *this* product has changed.
+    // Nested BlocBuilders for independent state management
+    return BlocBuilder<FavoritesBloc, FavoritesState>(
       buildWhen:
           (previous, current) =>
-              previous.cartItems[product.productId] !=
-              current.cartItems[product.productId],
-      builder: (context, cartState) {
-        final cartItem = cartState.cartItems[product.productId];
-        final quantityInCart = cartItem?.quantity ?? 0;
-        final isInCart = cartItem != null;
+              previous.favoriteProducts[product.productId] !=
+              current.favoriteProducts[product.productId],
+      builder: (context, favoritesState) {
+        final isFavorite = favoritesState.favoriteProducts.containsKey(
+          product.productId,
+        );
 
-        // Using AspectRatio for a responsive card that maintains its shape.
-        return AspectRatio(
-          aspectRatio: 2 / 3,
-          child: Card(
-            // Card provides a modern look with elevation and rounded corners.
-            elevation: 2,
-            shadowColor: Colors.grey.withOpacity(0.2),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            clipBehavior:
-                Clip.antiAlias, // Clips the child (InkWell) to the card's shape.
-            child: InkWell(
-              // Provides tap feedback. Can be used for navigation.
-              onTap: () {
-                // Example: Navigate to product detail screen
-                // Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)));
-                debugPrint("Tapped on ${product.name}");
-              },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Product Image Section
-                  Expanded(
-                    flex: 3,
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Image.network(
-                          product.imageUrl ?? '',
-                          fit: BoxFit.contain,
-                          errorBuilder:
-                              (context, error, stackTrace) => const Icon(
-                                Icons.image_not_supported,
-                                size: 50,
-                                color: Colors.grey,
-                              ),
-                        ),
-                      ),
-                    ),
-                  ),
+        return BlocBuilder<CartBloc, CartState>(
+          buildWhen:
+              (previous, current) =>
+                  previous.cartItems[product.productId] !=
+                  current.cartItems[product.productId],
+          builder: (context, cartState) {
+            final cartItem = cartState.cartItems[product.productId];
+            final quantityInCart = cartItem?.quantity ?? 0;
+            final isInCart = cartItem != null;
 
-                  // Product Details and Actions Section
-                  Expanded(
-                    flex: 2,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            return AspectRatio(
+              aspectRatio: 2 / 3,
+              child: Card(
+                elevation: 2,
+                shadowColor: Colors.grey.withOpacity(0.2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () {
+                    debugPrint("Tapped on ${product.name}");
+                  },
+                  child: Stack(
+                    children: [
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Product Name and Price
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                product.name ?? 'No Name',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
+                          // Product Image Section
+                          Expanded(
+                            flex: 3,
+                            child: Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Image.network(
+                                  product.imageUrl ?? '',
+                                  fit: BoxFit.contain,
+                                  errorBuilder:
+                                      (context, error, stackTrace) =>
+                                          const Icon(
+                                            Icons.image_not_supported,
+                                            size: 50,
+                                            color: Colors.grey,
+                                          ),
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Nrs. ${product.price?.toStringAsFixed(0) ?? '0'}',
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
 
-                          // --- SMOOTH TRANSITION ---
-                          // AnimatedSwitcher provides a smooth fade between the button and quantity changer.
-                          AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 300),
-                            transitionBuilder: (child, animation) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: child,
-                              );
-                            },
-                            child:
-                                isInCart
-                                    ? _QuantityChanger(
-                                      // Use a key to help AnimatedSwitcher identify the widget.
-                                      key: ValueKey(product.productId),
-                                      quantity: quantityInCart,
-                                      onDecrement: () {
-                                        context.read<CartBloc>().add(
-                                          DecrementCartItem(product.productId!),
-                                        );
-                                      },
-                                      onIncrement: () {
-                                        context.read<CartBloc>().add(
-                                          IncrementCartItem(product.productId!),
-                                        );
-                                      },
-                                    )
-                                    : _AddToCartButton(
-                                      key: ValueKey(product.productId),
-                                      onPressed:
-                                          () => _onAddToCartPressed(context),
-                                    ),
+                          // Product Details and Actions Section
+                          Expanded(
+                            flex: 2,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12.0,
+                              ),
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Product Name and Price
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        product.name ?? 'No Name',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Nrs. ${product.price?.toStringAsFixed(0) ?? '0'}',
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+
+                                  // --- SMOOTH TRANSITION ---
+                                  AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 300),
+                                    transitionBuilder: (child, animation) {
+                                      return FadeTransition(
+                                        opacity: animation,
+                                        child: child,
+                                      );
+                                    },
+                                    child:
+                                        isInCart
+                                            ? _QuantityChanger(
+                                              key: ValueKey(product.productId),
+                                              quantity: quantityInCart,
+                                              onDecrement: () {
+                                                context.read<CartBloc>().add(
+                                                  DecrementCartItem(
+                                                    product.productId!,
+                                                  ),
+                                                );
+                                              },
+                                              onIncrement: () {
+                                                context.read<CartBloc>().add(
+                                                  IncrementCartItem(
+                                                    product.productId!,
+                                                  ),
+                                                );
+                                              },
+                                            )
+                                            : _AddToCartButton(
+                                              key: ValueKey(product.productId),
+                                              onPressed:
+                                                  () => _onAddToCartPressed(
+                                                    context,
+                                                  ),
+                                            ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                    ),
+                      // --- FAVORITE ICON BUTTON ---
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.3),
+                            shape: BoxShape.circle,
+                          ),
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            iconSize: 20,
+                            icon: Icon(
+                              isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color:
+                                  isFavorite ? Colors.redAccent : Colors.white,
+                            ),
+                            onPressed: () {
+                              if (isFavorite) {
+                                context.read<FavoritesBloc>().add(
+                                  RemoveFromFavorites(product.productId!),
+                                );
+                              } else {
+                                context.read<FavoritesBloc>().add(
+                                  AddToFavorites(product),
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
   }
 }
 
-// --- Helper Widgets (These are correct, no changes needed) ---
+// --- Helper Widgets (Unchanged) ---
 
 class _AddToCartButton extends StatelessWidget {
   final VoidCallback onPressed;

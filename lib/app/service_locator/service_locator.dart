@@ -21,6 +21,7 @@ import 'package:hamro_grocery_mobile/feature/category/data/repository/remote_rep
 import 'package:hamro_grocery_mobile/feature/category/domain/repository/category_repository.dart';
 import 'package:hamro_grocery_mobile/feature/category/domain/usecase/get_all_category_usecase.dart';
 import 'package:hamro_grocery_mobile/feature/category/presentation/view_model/category_view_model.dart';
+import 'package:hamro_grocery_mobile/feature/favorite/view_model/favorite_view_model.dart';
 import 'package:hamro_grocery_mobile/feature/order/data/data_source/cart_remote_data_source.dart';
 import 'package:hamro_grocery_mobile/feature/order/data/data_source/order_item_remote_data_source.dart';
 import 'package:hamro_grocery_mobile/feature/order/data/data_source/payment_datasource.dart';
@@ -155,6 +156,7 @@ Future<void> _initAuthModule() async {
   serviceLocator.registerFactory(
     () => UpdateProfilePictureUsecase(
       authRepository: serviceLocator<AuthRemoteRepository>(),
+      tokenSharedPrefs: serviceLocator<TokenSharedPrefs>(),
     ),
   );
 
@@ -240,6 +242,8 @@ Future<void> _initProductModule() async {
       categoryViewModel: serviceLocator<CategoryViewModel>(),
     ),
   );
+
+  serviceLocator.registerFactory(() => FavoritesBloc());
 }
 
 Future<void> _initCartModule() async {

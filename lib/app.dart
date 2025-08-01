@@ -4,6 +4,7 @@ import 'package:hamro_grocery_mobile/app/service_locator/service_locator.dart';
 import 'package:hamro_grocery_mobile/app/theme/theme.dart';
 import 'package:hamro_grocery_mobile/feature/auth/presentation/view_model/login_view_model/login_view_model.dart';
 import 'package:hamro_grocery_mobile/feature/category/presentation/view_model/category_view_model.dart';
+import 'package:hamro_grocery_mobile/feature/favorite/view_model/favorite_view_model.dart';
 import 'package:hamro_grocery_mobile/feature/order/presentation/view_model/payment_view_model.dart';
 import 'package:hamro_grocery_mobile/splash/splash_screen.dart';
 import 'package:hamro_grocery_mobile/state/bottom_navigation_cubit.dart';
@@ -20,6 +21,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // --- CHANGE 1: Wrap everything with KhaltiScope ---
     return KhaltiScope(
       publicKey: "test_public_key_617c4c6fe77c441d88451ec1408a0c0e",
       builder: (context, navigatorKey) {
@@ -28,6 +30,7 @@ class MyApp extends StatelessWidget {
             BlocProvider(
               create: (context) => serviceLocator<ProductViewModel>(),
             ),
+            BlocProvider(create: (context) => serviceLocator<FavoritesBloc>()),
             BlocProvider(
               create: (context) => serviceLocator<CategoryViewModel>(),
             ),
