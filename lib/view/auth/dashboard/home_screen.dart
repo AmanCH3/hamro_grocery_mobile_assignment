@@ -182,6 +182,8 @@
 // }
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hamro_grocery_mobile/feature/auth/presentation/view_model/profile_view_model/profile_event.dart';
+import 'package:hamro_grocery_mobile/feature/auth/presentation/view_model/profile_view_model/profile_view_model.dart';
 import 'package:hamro_grocery_mobile/feature/category/presentation/view/category_card.dart';
 import 'package:hamro_grocery_mobile/feature/category/presentation/view_model/category_event.dart';
 import 'package:hamro_grocery_mobile/feature/category/presentation/view_model/category_state.dart';
@@ -190,6 +192,7 @@ import 'package:hamro_grocery_mobile/feature/product/presentation/view/product_c
 import 'package:hamro_grocery_mobile/feature/product/presentation/view_model/product_event.dart';
 import 'package:hamro_grocery_mobile/feature/product/presentation/view_model/product_state.dart';
 import 'package:hamro_grocery_mobile/feature/product/presentation/view_model/product_view_model.dart';
+import 'welcome_banner.dart'; // Import your welcome banner
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -199,30 +202,55 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  void _navigateToSearch(BuildContext context) {}
+
   @override
   void initState() {
     super.initState();
-    // When the screen loads, we don't need to do anything here because
-    // both ViewModels are already set to load their initial data
-    // in their constructors.
+    // Load user profile when home screen initializes
+    // This ensures the welcome banner has user data
+    context.read<ProfileViewModel>().add(LoadProfileEvent());
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // --- NEW APP BAR ---
       appBar: AppBar(
-        title: const Text(
-          'Hamro Grocery',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
         elevation: 0,
         backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black,
+        title: GestureDetector(
+          onTap: () => _navigateToSearch(context),
+          child: Container(
+            height: 45,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(30.0),
+            ),
+            child: const AbsorbPointer(
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Search for products...',
+                  hintStyle: TextStyle(color: Colors.grey),
+                  prefixIcon: Icon(Icons.search, color: Colors.grey),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(
+                    vertical: 12.0, // Adjust vertical padding
+                    horizontal: 10.0,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: const Icon(
+              Icons.notifications_none_outlined,
+              color: Colors.black54,
+            ),
             onPressed: () {
-              // TODO: Implement search functionality
+              // TODO: Implement notifications
             },
           ),
         ],
@@ -232,12 +260,21 @@ class _HomeScreenState extends State<HomeScreen> {
           // Manually trigger a refresh for both categories and all products
           context.read<CategoryViewModel>().add(LoadCategoriesEvent());
           context.read<ProductViewModel>().add(const LoadProductsEvent());
+          // Also refresh user profile data
+          context.read<ProfileViewModel>().add(LoadProfileEvent());
         },
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [_buildCategorySection(), _buildProductSection()],
+            children: [
+              // Welcome Banner - positioned right below the app bar
+              const WelcomeBanner(),
+
+              // Existing sections
+              _buildCategorySection(),
+              _buildProductSection(),
+            ],
           ),
         ),
       ),
@@ -327,7 +364,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildSectionHeader('Latest Products'),
         BlocBuilder<ProductViewModel, ProductState>(
           builder: (context, state) {
-            // --- USE SIMPLIFIED STATE ---
             if (state.isLoading && state.products.isEmpty) {
               return const SizedBox(
                 height: 260,
