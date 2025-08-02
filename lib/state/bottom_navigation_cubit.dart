@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hamro_grocery_mobile/feature/favorite/view/favorite_screen.dart';
-import 'package:hamro_grocery_mobile/feature/order/presentation/view/order_detail_screen.dart';
-import 'package:hamro_grocery_mobile/feature/order/presentation/view/order_screen.dart';
-import 'package:hamro_grocery_mobile/view/auth/dashboard/history_screen.dart';
-import 'package:hamro_grocery_mobile/view/auth/dashboard/home_screen.dart';
 import 'package:hamro_grocery_mobile/feature/auth/presentation/view/profile_screen.dart';
+import 'package:hamro_grocery_mobile/feature/favorite/view/favorite_screen.dart';
+import 'package:hamro_grocery_mobile/feature/order/presentation/view/order_screen.dart';
+import 'package:hamro_grocery_mobile/view/auth/dashboard/home_screen.dart';
+
 import 'bottom_navigation_state.dart';
 
 class BottomNavigationCubit extends Cubit<BottomNavigationState> {
+  // The list of screens is now managed here
   final List<Widget> _screens = [
-    const HomeScreen(),
+    // Note: We'll pass a dummy function for now, as the AppBar is handled centrally.
+    const HomeScreen(openDrawer: _dummyOpenDrawer),
     const OrderScreen(),
     const FavoritesScreen(),
     const ProfileScreen(),
@@ -18,7 +19,7 @@ class BottomNavigationCubit extends Cubit<BottomNavigationState> {
 
   final List<String> _appBarTitles = [
     'Hamro Grocery',
-    'My List',
+    'My Cart',
     'My Favourite',
     'Profile',
   ];
@@ -28,7 +29,8 @@ class BottomNavigationCubit extends Cubit<BottomNavigationState> {
         BottomNavigationState(
           currentIndex: 0,
           appBarTitle: 'Hamro Grocery',
-          currentScreen: const HomeScreen(),
+          // Set the initial screen
+          currentScreen: const HomeScreen(openDrawer: _dummyOpenDrawer),
         ),
       );
 
@@ -43,4 +45,7 @@ class BottomNavigationCubit extends Cubit<BottomNavigationState> {
       );
     }
   }
+
+  // A static dummy function to satisfy HomeScreen's requirement without needing a key
+  static void _dummyOpenDrawer() {}
 }

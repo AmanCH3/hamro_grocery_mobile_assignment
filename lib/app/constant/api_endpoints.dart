@@ -4,7 +4,7 @@ class ApiEndpoints {
   static const connectionTimeout = Duration(seconds: 1000);
   static const receiveTimeout = Duration(seconds: 1000);
 
-  static const String serverAddress = "http://10.84.77.182:8081";
+  static const String serverAddress = "http://192.168.1.13:8081";
 
   static const String baseUrl = "$serverAddress/api/";
   static const String imageUrl = "$serverAddress/uploads/";
@@ -31,4 +31,10 @@ class ApiEndpoints {
 
   static const String khaltiInitiate = '/khalti/initiate';
   static const String khaltiVerify = '/khalti/verify';
+
+  // ====================== Notification Routes ======================
+  static const String notifications = "notifications";
+  static const String markNotificationsAsRead = "notifications/mark-read";
+
+  static const String chatQuery = "/chat";
 }

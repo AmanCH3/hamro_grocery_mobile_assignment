@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:hamro_grocery_mobile/view/auth/dashboard/home_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hamro_grocery_mobile/app/service_locator/service_locator.dart';
+import 'package:hamro_grocery_mobile/feature/auth/presentation/view/profile_screen.dart';
 import 'package:hamro_grocery_mobile/feature/auth/presentation/view/signin_page.dart';
+import 'package:hamro_grocery_mobile/feature/bot/presentation/view/bot_view.dart';
+import 'package:hamro_grocery_mobile/feature/bot/presentation/view_model/bot_view_model.dart';
+import 'package:hamro_grocery_mobile/feature/order/presentation/view/order_screen.dart';
+import 'package:hamro_grocery_mobile/view/auth/dashboard/home_screen.dart';
 
 class GroceryAppHome extends StatefulWidget {
   const GroceryAppHome({super.key});
@@ -11,28 +17,29 @@ class GroceryAppHome extends StatefulWidget {
 
 class _GroceryAppHomeState extends State<GroceryAppHome> {
   int _selectedIndex = 0;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  static final List<Widget> _widgetOptions = <Widget>[
-    const HomeScreen(),
-    const Center(
-      child: Text(
-        'Your cart is empty',
-        style: TextStyle(fontSize: 18, color: Colors.grey),
+  void _openDrawer() {
+    _scaffoldKey.currentState?.openDrawer();
+  }
+
+  late final List<Widget> _widgetOptions;
+
+  @override
+  void initState() {
+    super.initState();
+    _widgetOptions = <Widget>[
+      HomeScreen(openDrawer: _openDrawer),
+      const OrderScreen(),
+      const Center(
+        child: Text(
+          'No order history yet',
+          style: TextStyle(fontSize: 18, color: Colors.grey),
+        ),
       ),
-    ),
-    const Center(
-      child: Text(
-        'No order history yet',
-        style: TextStyle(fontSize: 18, color: Colors.grey),
-      ),
-    ),
-    const Center(
-      child: Text(
-        'Profile details will appear here',
-        style: TextStyle(fontSize: 18, color: Colors.grey),
-      ),
-    ),
-  ];
+      const ProfileScreen(),
+    ];
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -48,44 +55,51 @@ class _GroceryAppHomeState extends State<GroceryAppHome> {
     );
   }
 
+  // ADDED: Method to open the bot screen
+  void _openBotView() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (_) => BlocProvider(
+              create: (context) => serviceLocator<ChatBloc>(),
+              child: const BotView(),
+            ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        toolbarHeight: 70,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+      key: _scaffoldKey,
+      body: IndexedStack(index: _selectedIndex, children: _widgetOptions),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.green),
+              child: Text(
+                'Hamro Grocery',
+                style: TextStyle(color: Colors.white, fontSize: 24),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Logout'),
+              onTap: _logout,
+            ),
+          ],
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.grey),
-          onPressed: () {},
-        ),
-        title: Image.asset('assets/hamro2.png', height: 40),
-        centerTitle: true,
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Colors.grey),
-            onSelected: (value) {
-              if (value == 'logout') {
-                _logout();
-              }
-            },
-            itemBuilder: (BuildContext context) {
-              return [
-                const PopupMenuItem<String>(
-                  value: 'logout',
-                  child: Text('Logout'),
-                ),
-              ];
-            },
-          ),
-          const SizedBox(width: 10),
-        ],
       ),
-      body: _widgetOptions[_selectedIndex],
+      // ADDED: FloatingActionButton for the bot
+      floatingActionButton: FloatingActionButton(
+        onPressed: _openBotView,
+        backgroundColor: Colors.green,
+        child: const Icon(Icons.support_agent, color: Colors.white),
+        tooltip: 'Ask TrailMate',
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,

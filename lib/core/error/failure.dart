@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 abstract class Failure extends Equatable {
   final String message;
 
+  // The 'required String error' parameter has been removed from here.
   const Failure({required this.message});
 
   @override
@@ -19,7 +20,7 @@ class ApiFailure extends Failure {
   const ApiFailure({this.statusCode, required super.message});
 
   @override
-  List<Object> get props => [message];
+  List<Object> get props => [message, statusCode ?? 0];
 }
 
 class SharedPreferencesFailure extends Failure {

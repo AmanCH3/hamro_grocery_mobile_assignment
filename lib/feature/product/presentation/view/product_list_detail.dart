@@ -11,7 +11,7 @@ import 'package:hamro_grocery_mobile/feature/product/presentation/view_model/pro
 import 'package:hamro_grocery_mobile/feature/product/presentation/view_model/product_view_model.dart';
 
 class ProductListScreen extends StatefulWidget {
-  const ProductListScreen({super.key});
+  const ProductListScreen({super.key, required categoryName});
 
   @override
   State<ProductListScreen> createState() => _ProductListScreenState();
