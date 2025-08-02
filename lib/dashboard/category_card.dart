@@ -3,13 +3,11 @@ import 'package:hamro_grocery_mobile/app/constant/api_endpoints.dart';
 
 class CategoryCard extends StatelessWidget {
   final String categoryName;
-  final String categoryImage;
   final VoidCallback onTap;
 
   const CategoryCard({
     Key? key,
     required this.categoryName,
-    required this.categoryImage,
     required this.onTap,
   }) : super(key: key);
 
@@ -35,22 +33,6 @@ class CategoryCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ClipOval(
-              child: Image.network(
-                // FINAL FIX: Construct the full, valid network URL
-                '${ApiEndpoints.serverAddress}$categoryImage',
-                width: 70,
-                height: 70,
-                fit: BoxFit.cover,
-                // Show a placeholder icon if the image fails to load
-                errorBuilder:
-                    (context, error, stackTrace) => const Icon(
-                      Icons.category,
-                      size: 70,
-                      color: Colors.grey,
-                    ),
-              ),
-            ),
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4.0),
