@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hamro_grocery_mobile/app/constant/api_endpoints.dart';
 import 'package:hamro_grocery_mobile/common/shake_detector.dart';
 import 'package:hamro_grocery_mobile/feature/auth/presentation/view/profile_detail_screen.dart';
 import 'package:hamro_grocery_mobile/feature/auth/presentation/view/signin_page.dart';
@@ -7,7 +8,6 @@ import 'package:hamro_grocery_mobile/feature/auth/presentation/view_model/profil
 import 'package:hamro_grocery_mobile/feature/auth/presentation/view_model/profile_view_model/profile_state.dart';
 import 'package:hamro_grocery_mobile/feature/auth/presentation/view_model/profile_view_model/profile_view_model.dart';
 
-// --- 2. Convert to a StatefulWidget ---
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -16,34 +16,26 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // --- 3. Declare an instance of the ShakeDetector ---
   late ShakeDetector _shakeDetector;
 
   @override
   void initState() {
     super.initState();
-    // --- 4. Initialize and start the detector ---
-    _shakeDetector = ShakeDetector(
-      onPhoneShake: _handleShakeToLogout, // Set the callback function
-    );
+    _shakeDetector = ShakeDetector(onPhoneShake: _handleShakeToLogout);
     _shakeDetector.startListening();
   }
 
   @override
   void dispose() {
-    // --- 5. Stop the detector to prevent memory leaks ---
     _shakeDetector.stopListening();
     super.dispose();
   }
 
-  // --- 6. Create the callback function to handle the shake event ---
   void _handleShakeToLogout() async {
-    // Prevent triggering another logout if one is already in progress or the widget is gone.
     if (!mounted || context.read<ProfileViewModel>().state.isLoading) {
       return;
     }
 
-    // This logic is identical to the button's onPressed logic.
     final bool? didConfirm = await showDialog<bool>(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -92,7 +84,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
               builder: (context, state) {
                 final user = state.authEntity;
 
-                // The UI part remains the same
+                ImageProvider? profileImage;
+
+                // 1. Check for a newly picked local image first.
+                if (state.newProfileImageFile != null) {
+                  profileImage = FileImage(state.newProfileImageFile!);
+                }
+                // 2. If no local image, check for an existing network image.
+                else if (user?.profilePicture?.isNotEmpty == true) {
+                  // ======================= FIX IS HERE =======================
+                  // Combine the URL parts and replace any double slashes "//" with a single "/".
+                  // This robustly handles incorrect slash formatting.
+                  final combinedUrl =
+                      ApiEndpoints.baseUrl + user!.profilePicture!;
+                  final fullImageUrl = combinedUrl.replaceAll('//', '/');
+                  profileImage = NetworkImage(fullImageUrl);
+                  // ==========================================================
+                }
+
                 return Column(
                   children: [
                     const SizedBox(height: 30),
@@ -104,10 +113,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 30),
-                    const CircleAvatar(
+                    CircleAvatar(
                       radius: 50,
-                      backgroundColor: Color(0xFFE0E0E0),
-                      child: Icon(Icons.person, size: 60, color: Colors.white),
+                      backgroundColor: const Color(0xFFE0E0E0),
+                      // Add an error builder to handle 404s gracefully
+                      backgroundImage: profileImage,
+                      onBackgroundImageError: (exception, stackTrace) {
+                        // This will be called if the image fails to load (e.g., 404)
+                        // You can log the error or handle it as needed.
+                        debugPrint("Error loading profile image: $exception");
+                      },
+                      child:
+                          profileImage == null
+                              ? const Icon(
+                                Icons.person,
+                                size: 60,
+                                color: Colors.white,
+                              )
+                              : null,
                     ),
                     const SizedBox(height: 16),
                     Text(

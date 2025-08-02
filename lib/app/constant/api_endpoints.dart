@@ -9,6 +9,8 @@ class ApiEndpoints {
   static const String baseUrl = "$serverAddress/api/";
   static const String imageUrl = "$serverAddress/uploads/";
 
+  static const String imageUrll = "$serverAddress/images/";
+
   static const String login = "auth/login";
   static const String register = "auth/register";
 

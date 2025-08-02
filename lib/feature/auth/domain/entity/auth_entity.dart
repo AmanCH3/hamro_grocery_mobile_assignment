@@ -4,7 +4,8 @@ class AuthEntity extends Equatable {
   final String? userId;
   final String fullName;
   final String email;
-  final String password;
+  final String
+  password; // Note: Storing plain text password in an entity is generally not recommended for security.
 
   final String? profilePicture;
   final String? location;
@@ -21,7 +22,8 @@ class AuthEntity extends Equatable {
   });
 
   @override
-  // TODO: implement props
+  // This tells Equatable which properties to use for comparison.
+  // If any of these properties change, the object will be considered different.
   List<Object?> get props => [
     userId,
     fullName,
