@@ -4,7 +4,7 @@ class ApiEndpoints {
   static const connectionTimeout = Duration(seconds: 1000);
   static const receiveTimeout = Duration(seconds: 1000);
 
-  static const String serverAddress = "http://192.168.1.13:8081";
+  static const String serverAddress = "http://192.168.1.14:8081";
 
   static const String baseUrl = "$serverAddress/api/";
   static const String imageUrl = "$serverAddress/uploads/";

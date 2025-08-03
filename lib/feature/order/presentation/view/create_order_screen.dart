@@ -226,10 +226,6 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                 ),
                 RadioListTile<PaymentMethod>(
                   title: const Text('Pay with Khalti'),
-                  secondary: Image.asset(
-                    'assets/images/khalti_logo.png',
-                    height: 28,
-                  ),
                   value: PaymentMethod.khalti,
                   groupValue: _paymentMethod,
                   onChanged: (value) => setState(() => _paymentMethod = value!),
