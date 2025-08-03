@@ -5,14 +5,14 @@ import 'package:hamro_grocery_mobile/feature/order/domain/entity/order_entity.da
 enum OrderRequestStatus { initial, loading, success, failure }
 
 class OrderState extends Equatable {
-  final OrderRequestStatus status;
+  final OrderRequestStatus? status;
   final List<OrderEntity> myOrders;
   final OrderEntity? selectedOrder;
   final List<OrderEntity> paymentHistory;
   final String? errorMessage;
 
   const OrderState({
-    required this.status,
+    this.status,
     this.myOrders = const [],
     this.selectedOrder,
     this.paymentHistory = const [],

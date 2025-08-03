@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hamro_grocery_mobile/feature/auth/domain/entity/auth_entity.dart';
+// IMPORT YOUR API CONSTANTS
+import 'package:hamro_grocery_mobile/app/constant/api_endpoints.dart';
 import 'package:hamro_grocery_mobile/feature/auth/presentation/view_model/profile_view_model/profile_state.dart';
 import 'package:hamro_grocery_mobile/feature/auth/presentation/view_model/profile_view_model/profile_view_model.dart';
 
@@ -18,6 +19,31 @@ class WelcomeBanner extends StatelessWidget {
 
         final user = state.authEntity!;
         final displayName = _getDisplayName(user.fullName);
+
+        ImageProvider? profileImage;
+
+        // 1. Check for a newly picked local image first.
+        if (state.newProfileImageFile != null) {
+          profileImage = FileImage(state.newProfileImageFile!);
+        }
+        // 2. If no local image, check for an existing network image.
+        else if (user.profilePicture?.isNotEmpty == true) {
+          // ======================= THE FIX IS HERE =======================
+          final combinedUrl = ApiEndpoints.baseUrl + user.profilePicture!;
+
+          // First, replace all double slashes. This might break "http://".
+          var fullImageUrl = combinedUrl.replaceAll('//', '/');
+
+          // Now, specifically fix the protocol if it was broken.
+          if (fullImageUrl.startsWith("http:/")) {
+            fullImageUrl = fullImageUrl.replaceFirst("http:/", "http://");
+          } else if (fullImageUrl.startsWith("https:/")) {
+            fullImageUrl = fullImageUrl.replaceFirst("https:/", "https://");
+          }
+
+          profileImage = NetworkImage(fullImageUrl);
+          // ===============================================================
+        }
 
         return Container(
           margin: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0),
@@ -49,16 +75,17 @@ class WelcomeBanner extends StatelessWidget {
                   ),
                 ),
                 child:
-                    user.profilePicture != null
+                    profileImage != null
                         ? ClipOval(
-                          child: Image.network(
-                            user.profilePicture!,
+                          child: Image(
+                            image: profileImage,
                             width: 50,
                             height: 50,
                             fit: BoxFit.cover,
-                            errorBuilder:
-                                (context, error, stackTrace) =>
-                                    _buildInitialsAvatar(displayName),
+                            errorBuilder: (context, error, stackTrace) {
+                              debugPrint("Image Error in Banner: $error");
+                              return _buildInitialsAvatar(displayName);
+                            },
                           ),
                         )
                         : _buildInitialsAvatar(displayName),
@@ -72,7 +99,6 @@ class WelcomeBanner extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Greeting and name
                     RichText(
                       text: TextSpan(
                         style: const TextStyle(
@@ -99,8 +125,6 @@ class WelcomeBanner extends StatelessWidget {
                         ],
                       ),
                     ),
-
-                    // Location/Address
                     if (user.location != null && user.location!.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Row(
@@ -129,8 +153,6 @@ class WelcomeBanner extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // Optional action button or status indicator
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -157,7 +179,6 @@ class WelcomeBanner extends StatelessWidget {
     );
   }
 
-  /// Extracts display name from full name (first name or first two words)
   String _getDisplayName(String fullName) {
     if (fullName.isEmpty) return 'User';
 
@@ -165,20 +186,19 @@ class WelcomeBanner extends StatelessWidget {
     if (nameParts.length == 1) {
       return nameParts.first;
     } else if (nameParts.length >= 2) {
-      return '${nameParts[0]} ${nameParts[1]}';
+      return '${nameParts.first} ${nameParts.last}';
     }
     return nameParts.first;
   }
 
-  /// Builds avatar with user initials
   Widget _buildInitialsAvatar(String displayName) {
     String initials = '';
-    final nameParts = displayName.split(' ');
+    final nameParts = _getDisplayName(displayName).split(' ');
 
-    if (nameParts.isNotEmpty) {
+    if (nameParts.isNotEmpty && nameParts.first.isNotEmpty) {
       initials = nameParts[0][0].toUpperCase();
-      if (nameParts.length > 1) {
-        initials += nameParts[1][0].toUpperCase();
+      if (nameParts.length > 1 && nameParts.last.isNotEmpty) {
+        initials += nameParts.last[0].toUpperCase();
       }
     } else {
       initials = 'U';

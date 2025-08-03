@@ -62,6 +62,8 @@ dependencies:
   intl: ^0.18.0
   sensors_plus: ^6.1.1
   khalti_flutter: ^3.0.0
+  badges: ^3.1.2
+  test_cov_console: ^0.2.2
   
 
 dev_dependencies:

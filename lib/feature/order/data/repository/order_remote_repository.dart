@@ -1,14 +1,17 @@
+// lib/feature/order/data/repository/order_repository_impl.dart
+
 import 'package:dartz/dartz.dart';
 import 'package:hamro_grocery_mobile/core/error/failure.dart';
-import 'package:hamro_grocery_mobile/feature/order/data/data_source/order_item_remote_data_source.dart';
+import 'package:hamro_grocery_mobile/feature/order/data/data_source/order_item_data_source.dart';
 import 'package:hamro_grocery_mobile/feature/order/domain/entity/order_entity.dart';
 import 'package:hamro_grocery_mobile/feature/order/domain/entity/order_item_entity.dart';
 import 'package:hamro_grocery_mobile/feature/order/domain/repository/order_repository.dart';
 
 class OrderRepositoryImpl implements IOrderRepository {
-  final OrderRemoteDataSourceImpl _orderDataSource;
+  final IOrderDataSource _orderDataSource;
 
-  OrderRepositoryImpl({required OrderRemoteDataSourceImpl orderDataSource})
+  // FIX: Simplified the constructor to only accept a single named parameter.
+  OrderRepositoryImpl({required IOrderDataSource orderDataSource})
     : _orderDataSource = orderDataSource;
 
   @override
@@ -33,13 +36,13 @@ class OrderRepositoryImpl implements IOrderRepository {
     }
   }
 
+  // ... rest of your class code remains the same
   @override
   Future<Either<Failure, OrderEntity>> updateOrderStatus({
     required String orderId,
     required OrderStatus status,
   }) async {
     try {
-      // The data source already returns the entity, so we just wrap it in Right.
       final updatedOrder = await _orderDataSource.updateOrderStatus(
         orderId: orderId,
         status: status,

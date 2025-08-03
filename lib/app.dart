@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hamro_grocery_mobile/app/service_locator/service_locator.dart';
 import 'package:hamro_grocery_mobile/app/theme/theme.dart';
 import 'package:hamro_grocery_mobile/feature/auth/presentation/view_model/login_view_model/login_view_model.dart';
+import 'package:hamro_grocery_mobile/feature/bot/presentation/view_model/bot_view_model.dart';
 import 'package:hamro_grocery_mobile/feature/category/presentation/view_model/category_view_model.dart';
 import 'package:hamro_grocery_mobile/feature/favorite/view_model/favorite_view_model.dart';
 import 'package:hamro_grocery_mobile/feature/order/presentation/view_model/payment_view_model.dart';
@@ -43,6 +44,7 @@ class MyApp extends StatelessWidget {
             ),
             BlocProvider(create: (context) => BottomNavigationCubit()),
             BlocProvider(create: (context) => serviceLocator<PaymentBloc>()),
+            BlocProvider(create: (context) => serviceLocator<ChatBloc>()),
           ],
           child: MaterialApp(
             // --- CHANGE 3: Add these required properties for Khalti ---

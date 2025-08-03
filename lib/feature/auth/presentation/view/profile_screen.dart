@@ -1,5 +1,8 @@
+// lib/feature/auth/presentation/view/profile_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hamro_grocery_mobile/app/constant/api_endpoints.dart';
 import 'package:hamro_grocery_mobile/common/shake_detector.dart';
 import 'package:hamro_grocery_mobile/feature/auth/presentation/view/profile_detail_screen.dart';
 import 'package:hamro_grocery_mobile/feature/auth/presentation/view/signin_page.dart';
@@ -7,7 +10,9 @@ import 'package:hamro_grocery_mobile/feature/auth/presentation/view_model/profil
 import 'package:hamro_grocery_mobile/feature/auth/presentation/view_model/profile_view_model/profile_state.dart';
 import 'package:hamro_grocery_mobile/feature/auth/presentation/view_model/profile_view_model/profile_view_model.dart';
 
-// --- 2. Convert to a StatefulWidget ---
+// Assuming ServicePage is in this location, adjust if necessary
+// import 'package:hamro_grocery_mobile/view/auth/dashboard/service_page.dart';
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -16,56 +21,45 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // --- 3. Declare an instance of the ShakeDetector ---
   late ShakeDetector _shakeDetector;
 
   @override
   void initState() {
     super.initState();
-    // --- 4. Initialize and start the detector ---
-    _shakeDetector = ShakeDetector(
-      onPhoneShake: _handleShakeToLogout, // Set the callback function
-    );
+    _shakeDetector = ShakeDetector(onPhoneShake: _handleShakeToLogout);
     _shakeDetector.startListening();
   }
 
   @override
   void dispose() {
-    // --- 5. Stop the detector to prevent memory leaks ---
     _shakeDetector.stopListening();
     super.dispose();
   }
 
-  // --- 6. Create the callback function to handle the shake event ---
   void _handleShakeToLogout() async {
-    // Prevent triggering another logout if one is already in progress or the widget is gone.
-    if (!mounted || context.read<ProfileViewModel>().state.isLoading) {
-      return;
-    }
-
-    // This logic is identical to the button's onPressed logic.
+    if (!mounted || context.read<ProfileViewModel>().state.isLoading) return;
     final bool? didConfirm = await showDialog<bool>(
       context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Confirm Logout'),
-          content: const Text(
-            'Are you sure you want to log out? (Triggered by shake)',
+      builder: (BuildContext dialogContext) => AlertDialog(
+        title: const Text('Confirm Logout'),
+        content: const Text(
+          'Are you sure you want to log out? (Triggered by shake)',
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
           ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () => Navigator.of(dialogContext).pop(false),
+          TextButton(
+            child: const Text(
+              'Logout',
+              style: TextStyle(color: Colors.red),
             ),
-            TextButton(
-              child: const Text('Logout', style: TextStyle(color: Colors.red)),
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-            ),
-          ],
-        );
-      },
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+          ),
+        ],
+      ),
     );
-
     if (didConfirm == true && mounted) {
       context.read<ProfileViewModel>().add(LogoutEvent());
     }
@@ -78,7 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (state.isLoggedOut) {
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => const SignInPage()),
-            (Route<dynamic> route) => false,
+                (Route<dynamic> route) => false,
           );
         }
       },
@@ -91,8 +85,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: BlocBuilder<ProfileViewModel, ProfileState>(
               builder: (context, state) {
                 final user = state.authEntity;
+                ImageProvider? profileImage;
+                if (state.newProfileImageFile != null) {
+                  profileImage = FileImage(state.newProfileImageFile!);
+                } else if (user?.profilePicture?.isNotEmpty == true) {
+                  final combinedUrl =
+                      ApiEndpoints.baseUrl + user!.profilePicture!;
+                  final fullImageUrl = combinedUrl.replaceAll('//', '/');
+                  profileImage = NetworkImage(fullImageUrl);
+                }
 
-                // The UI part remains the same
                 return Column(
                   children: [
                     const SizedBox(height: 30),
@@ -104,11 +106,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 30),
-                    const CircleAvatar(
+                    // =================== CORRECTED CODE BLOCK ===================
+                    CircleAvatar(
                       radius: 50,
-                      backgroundColor: Color(0xFFE0E0E0),
-                      child: Icon(Icons.person, size: 60, color: Colors.white),
+                      backgroundColor: const Color(0xFFE0E0E0),
+                      backgroundImage: profileImage,
+                      // Conditionally provide the error handler only if an image exists
+                      onBackgroundImageError: profileImage != null
+                          ? (exception, stackTrace) {
+                        debugPrint(
+                            "Error loading profile image: $exception");
+                      }
+                          : null,
+                      child: profileImage == null
+                          ? const Icon(
+                        Icons.person,
+                        size: 60,
+                        color: Colors.white,
+                      )
+                          : null,
                     ),
+                    // ==========================================================
                     const SizedBox(height: 16),
                     Text(
                       'Hello, ${user?.fullName ?? 'User'}',
@@ -129,11 +147,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder:
-                                (_) => BlocProvider.value(
-                                  value: context.read<ProfileViewModel>(),
-                                  child: const ProfileDetailScreen(),
-                                ),
+                            builder: (_) => BlocProvider.value(
+                              value: context.read<ProfileViewModel>(),
+                              child: const ProfileDetailScreen(),
+                            ),
                           ),
                         );
                       },
@@ -151,50 +168,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed:
-                            state.isLoading
-                                ? null
-                                : () async {
-                                  final bool?
-                                  didConfirm = await showDialog<bool>(
-                                    context: context,
-                                    builder: (BuildContext dialogContext) {
-                                      return AlertDialog(
-                                        title: const Text('Confirm Logout'),
-                                        content: const Text(
-                                          'Are you sure you want to log out?',
+                        onPressed: state.isLoading
+                            ? null
+                            : () async {
+                          final bool? didConfirm = await showDialog<bool>(
+                            context: context,
+                            builder: (
+                                BuildContext dialogContext,
+                                ) =>
+                                AlertDialog(
+                                  title: const Text('Confirm Logout'),
+                                  content: const Text(
+                                    'Are you sure you want to log out?',
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      child: const Text('Cancel'),
+                                      onPressed: () => Navigator.of(
+                                        dialogContext,
+                                      ).pop(false),
+                                    ),
+                                    TextButton(
+                                      child: const Text(
+                                        'Logout',
+                                        style: TextStyle(
+                                          color: Colors.red,
                                         ),
-                                        actions: <Widget>[
-                                          TextButton(
-                                            child: const Text('Cancel'),
-                                            onPressed:
-                                                () => Navigator.of(
-                                                  dialogContext,
-                                                ).pop(false),
-                                          ),
-                                          TextButton(
-                                            child: const Text(
-                                              'Logout',
-                                              style: TextStyle(
-                                                color: Colors.red,
-                                              ),
-                                            ),
-                                            onPressed:
-                                                () => Navigator.of(
-                                                  dialogContext,
-                                                ).pop(true),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-
-                                  if (didConfirm == true && mounted) {
-                                    context.read<ProfileViewModel>().add(
-                                      LogoutEvent(),
-                                    );
-                                  }
-                                },
+                                      ),
+                                      onPressed: () => Navigator.of(
+                                        dialogContext,
+                                      ).pop(true),
+                                    ),
+                                  ],
+                                ),
+                          );
+                          if (didConfirm == true && mounted) {
+                            context.read<ProfileViewModel>().add(
+                              LogoutEvent(),
+                            );
+                          }
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFD9534F),
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -202,23 +215,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child:
-                            state.isLoading
-                                ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 3,
-                                  ),
-                                )
-                                : const Text(
-                                  'Logout',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                        child: state.isLoading
+                            ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 3,
+                          ),
+                        )
+                            : const Text(
+                          'Logout',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -235,9 +247,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 class _ProfileMenuButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
-
   const _ProfileMenuButton({required this.text, required this.onPressed});
-
   @override
   Widget build(BuildContext context) {
     return Padding(
