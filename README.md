@@ -11,19 +11,20 @@ Hamro Grocery is a mobile application for a grocery store. This project is a mob
 * **Favorites:** Mark products as favorites for easy access.
 * **Account Management:** View and manage your account details.
 
+---
+
 ## 📸 Screenshots
 
-Here are some screenshots of the application's user interface:
+Here is a showcase of the application's user interface.
 
-| Splash & Onboarding                                                                                                         | Login & Signup                                                                                                            |
-| :--------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------: |
-| ![Splash Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/1.png?raw=true)               | ![Login Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/2.png?raw=true)               |
-| **Onboarding** | **Signup** |
-| ![Onboarding Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/3.png?raw=true)           | ![Signup Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/4.png?raw=true)             |
-| **Home & Product Details** | **Explore & Cart** |
-| ![Home Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/5.png?raw=true)                 | ![Explore Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/6.png?raw=true)             |
-| **Product Details** | **Cart** |
-| ![Product Details Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/7.png?raw=true)     | ![Cart Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/8.png?raw=true)               |
+| | |
+| :---: | :---: |
+| ![Screenshot 1](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/1.png?raw=true) | ![Screenshot 2](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/2.png?raw=true) |
+| ![Screenshot 3](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/3.png?raw=true) | ![Screenshot 4](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/4.png?raw=true) |
+| ![Screenshot 5](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/5.png?raw=true) | ![Screenshot 6](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/6.png?raw=true) |
+| ![Screenshot 7](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/7.png?raw=true) | ![Screenshot 8](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/8.png?raw=true) |
+
+---
 
 ## 🛠️ Getting Started
 
@@ -52,18 +53,40 @@ To get a local copy up and running, follow these simple steps.
     flutter run
     ```
 
+---
+
+## 📦 Dependencies
+
+This project uses the following key dependencies:
+
+* `cupertino_icons`: For iOS-style icons.
+* `flutter_svg`: To render SVG files.
+* `get`: For state management, dependency injection, and route management.
+
+---
+
+## 🤝 Contributing
+
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+
 1.  Fork the Project
 2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
 3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4.  Push to the Branch (`git push origin feature/AmazingFeature`)
 5.  Open a Pull Request
 
+---
+
 ## 📄 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
+---
+
 ## 📧 Contact
 
-Aman - amanchaudhary3435@gmail.com
+Aman - amangch111@gmail.com
 
 Project Link: [https://github.com/AmanCH3/hamro_grocery_mobile_assignment](https://github.com/AmanCH3/hamro_grocery_mobile_assignment)
