@@ -8,32 +8,8 @@ Hamro Grocery is a Flutter-based mobile application for a grocery store. This pr
 
 Here is a gallery of the application's user interface, with screenshots taken directly from the application.
 
-| Splash & Onboarding | Authentication |
-| :---: | :---: |
-| ![Splash Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/splash.png?raw=true) | ![Login Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/login.png?raw=true) |
-| **Onboarding** | **Signup** |
-| ![Onboarding Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/onboarding.png?raw=true) | ![Signup Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/signup.png?raw=true) |
 
-| Core Application Screens |
-| :---: |
-| **Home Screen** |
-| ![Home Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/home.png?raw=true) |
-| **Explore & Filters** |
-| ![Explore Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/explore.png?raw=true) |
-| ![Filters Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/filters.png?raw=true) |
-| **Product Details** |
-| ![Product Details Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/product_details.png?raw=true) |
-
-| User-Specific Screens |
-| :---: |
-| **Shopping Cart** |
-| ![Cart Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/cart.png?raw=true) |
-| **Favorites** |
-| ![Favourite Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/favourite.png?raw=true) |
-| **Account** |
-| ![Account Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/account.png?raw=true) |
-
----
+| ![UI](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/0b1cd963-5f0a-4ba0-bc0d-c9466937ee82.jpg) |
 
 ## 🚀 Features
 
