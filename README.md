@@ -1,38 +1,58 @@
 # Hamro Grocery
 
-Hamro Grocery is a mobile application for a grocery store. This project is a mobile assignment that showcases a simple and intuitive user interface for an e-commerce application built with Flutter.
-
-## 🚀 Features
-
-* **User Authentication:** Splash screen, onboarding, login, and signup pages.
-* **Product Browse:** View products in a categorized and organized manner.
-* **Product Details:** See detailed information about each product.
-* **Shopping Cart:** Add and manage products in a shopping cart.
-* **Favorites:** Mark products as favorites for easy access.
-* **Account Management:** View and manage your account details.
+Hamro Grocery is a Flutter-based mobile application for a grocery store. This project serves as a showcase of a clean and modern user interface for an e-commerce platform.
 
 ---
 
-## 📸 Screenshots
+## 📸 UI Showcase
 
-Here is a showcase of the application's user interface.
+Here is a gallery of the application's user interface, with screenshots taken directly from the application.
 
-| | |
+| Splash & Onboarding | Authentication |
 | :---: | :---: |
-| ![Screenshot 1](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/1.png?raw=true) | ![Screenshot 2](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/2.png?raw=true) |
-| ![Screenshot 3](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/3.png?raw=true) | ![Screenshot 4](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/4.png?raw=true) |
-| ![Screenshot 5](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/5.png?raw=true) | ![Screenshot 6](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/6.png?raw=true) |
-| ![Screenshot 7](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/7.png?raw=true) | ![Screenshot 8](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/8.png?raw=true) |
+| ![Splash Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/splash.png?raw=true) | ![Login Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/login.png?raw=true) |
+| **Onboarding** | **Signup** |
+| ![Onboarding Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/onboarding.png?raw=true) | ![Signup Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/signup.png?raw=true) |
+
+| Core Application Screens |
+| :---: |
+| **Home Screen** |
+| ![Home Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/home.png?raw=true) |
+| **Explore & Filters** |
+| ![Explore Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/explore.png?raw=true) |
+| ![Filters Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/filters.png?raw=true) |
+| **Product Details** |
+| ![Product Details Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/product_details.png?raw=true) |
+
+| User-Specific Screens |
+| :---: |
+| **Shopping Cart** |
+| ![Cart Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/cart.png?raw=true) |
+| **Favorites** |
+| ![Favourite Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/favourite.png?raw=true) |
+| **Account** |
+| ![Account Screen](https://github.com/AmanCH3/hamro_grocery_mobile_assignment/blob/main/screenshot/account.png?raw=true) |
+
+---
+
+## 🚀 Features
+
+* **User Authentication:** Seamless flow for splash, onboarding, login, and signup.
+* **Product Discovery:** Browse products through a categorized home screen and an intuitive explore page with filtering options.
+* **Detailed Product View:** Access comprehensive information for each product.
+* **Shopping Cart:** Easily add, manage, and remove items from the cart.
+* **Favorites:** Save products for later with a dedicated favorites list.
+* **Account Management:** A dedicated section for users to manage their account details.
 
 ---
 
 ## 🛠️ Getting Started
 
-To get a local copy up and running, follow these simple steps.
+To get a local copy of this project up and running, follow these simple steps.
 
 ### Prerequisites
 
-* **Flutter SDK:** Make sure you have the Flutter SDK installed on your machine. You can find the installation instructions [here](https://flutter.dev/docs/get-started/install).
+* **Flutter SDK:** Ensure you have the Flutter SDK installed. For installation instructions, see the [official Flutter documentation](https://flutter.dev/docs/get-started/install).
 
 ### Installation
 
@@ -55,21 +75,21 @@ To get a local copy up and running, follow these simple steps.
 
 ---
 
-## 📦 Dependencies
+## 📦 Key Dependencies
 
-This project uses the following key dependencies:
+This project relies on a few key packages:
 
-* `cupertino_icons`: For iOS-style icons.
-* `flutter_svg`: To render SVG files.
-* `get`: For state management, dependency injection, and route management.
+* `cupertino_icons`: Provides default iOS-style icons.
+* `flutter_svg`: Enables the use of SVG images in the application.
+* `get`: A powerful and lightweight package for state management, dependency injection, and route management.
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Contributions make the open-source community an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+If you have a suggestion that would make this better, please fork the repository and create a pull request. You can also simply open an issue with the tag "enhancement".
 
 1.  Fork the Project
 2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
@@ -81,12 +101,12 @@ If you have a suggestion that would make this better, please fork the repo and c
 
 ## 📄 License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
 
 ---
 
 ## 📧 Contact
 
-Aman - amangch111@gmail.com
+Aman - amanchaudhary3435@gmail.com
 
 Project Link: [https://github.com/AmanCH3/hamro_grocery_mobile_assignment](https://github.com/AmanCH3/hamro_grocery_mobile_assignment)
